@@ -42,7 +42,7 @@ export function removeFromCart(productId) {
   const newCart = [];
 
   cart.forEach((cartItem) => {
-    if (cartItem.product !== productId) {
+    if (cartItem.productId !== productId) {
       newCart.push(cartItem);
     }
   });
@@ -64,4 +64,19 @@ cart.forEach((cartItem) => {
 matchingItem.deliveryOptionId = deliveryOptionId;
 
   saveToStorage();
+}
+
+export function updateQuantity(productId, newQuantity) {
+  let matchingItem;
+  
+  cart.forEach((cartItem) => {
+    if (productId === cartItem.productId) {
+      matchingItem = cartItem;
+    }
+  });
+  
+  if (matchingItem) {
+    matchingItem.quantity = newQuantity;
+    saveToStorage();
+  }
 }
