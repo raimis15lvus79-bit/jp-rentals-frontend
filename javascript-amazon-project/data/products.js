@@ -1,8 +1,9 @@
 import {formatCurrency} from '../scripts/utils/money.js';
+
 export function getProduct(productId){
   let matchingProduct;
-
-    product.forEach((product) => {
+  
+  products.forEach((product) => {
       if (product.id === productId) {
         matchingProduct = product;
       }
@@ -88,10 +89,10 @@ const object3 = {
 object3.method();
 */
 
-export const product = [ 
+export const products = [ 
   {
     id: "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
-    image: "image/products/athletic-cotton-socks-6-pairs.jpg",
+    image: "images/products/athletic-cotton-socks-6-pairs.jpg",
     name: "Black and Gray Athletic Cotton Socks - 6 Pairs",
     rating: {
       stars: 4.5,

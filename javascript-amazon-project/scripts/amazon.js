@@ -1,10 +1,10 @@
 import {cart, addToCart} from '../data/cart.js';
-import {product} from '../data/products.js';
+import {products} from '../data/products.js';
 import{formatCurrency} from './utils/money.js';
 
 let productsHTML = '';
 
-product.forEach((product) => {
+products.forEach((product) => {
   productsHTML += `
   <div class="product-container">
           <div class="product-image-container">
@@ -60,6 +60,8 @@ product.forEach((product) => {
 });
 
 document.querySelector('.js-products-grid').innerHTML = productsHTML; 
+
+updateCartQuantity();
 
 function updateCartQuantity() {
   let cartQuantity =0;

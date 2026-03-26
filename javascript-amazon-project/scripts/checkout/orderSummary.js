@@ -1,5 +1,5 @@
 import {cart, removeFromCart, updateDeliveryOption, updateQuantity} from '../../data/cart.js';
-import {product, getProduct} from '../../data/products.js';
+import { getProduct } from '../../data/products.js';
 import {formatCurrency} from '../utils/money.js';
 import {hello} from 'https://unpkg.com/supersimpledev@1.0.1/hello.esm.js';
 import dayjs from 'https://unpkg.com/supersimpledev@8.5.0/dayjs/esm/index.js';
