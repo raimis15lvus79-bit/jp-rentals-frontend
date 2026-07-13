@@ -3,7 +3,7 @@ import path from 'path';
 import archiver from 'archiver';
 
 const outputDir = path.resolve('./');
-const zipFilePrefix = 'ecommerce-backend-';
+const zipFilePrefix = 'rentals-backend-';
 
 // Get the next zip file ID
 const getNextZipId = () => {

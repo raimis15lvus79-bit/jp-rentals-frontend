@@ -19,6 +19,6 @@ server: {
   }
 },
 build: {
-  outDir: '../ecommerce-backend/dist'
+  outDir: '../rentals-backend/dist'
 }
 })

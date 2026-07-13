@@ -19,7 +19,7 @@ useEffect(() => {
 
   return (
     <>
-      <title>Ecommerce Project</title>
+      <title>JP Rentals and Events</title>
 
       <Header cart={cart} />
 
