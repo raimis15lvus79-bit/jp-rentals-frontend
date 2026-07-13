@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { formatMoney } from '../../utils/money';
 
 export function PaymentSummary({paymentSummary, loadCart}) {
