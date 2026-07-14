@@ -22,14 +22,18 @@ export function DeliveryOptions({cartItem, deliveryOptions, loadCart}) {
         });
         await loadCart();
       };
-          
+           
       return (
         <div key={deliveryOption.id} className="delivery-option"
-        onClick={updateDeliveryOption}>
+        onClick={updateDeliveryOption}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); updateDeliveryOption(); } }}
+        role="radio"
+        aria-checked={deliveryOption.id === cartItem.deliveryOptionId}
+        tabIndex={0}>
           <input
           type="radio"
           checked={deliveryOption.id === cartItem.deliveryOptionId}
-          onChange={() => {}}
+          onChange={updateDeliveryOption}
           className="delivery-option-input"
           name={`delivery-option-${cartItem.productId}`}
             />

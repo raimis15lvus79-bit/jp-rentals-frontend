@@ -4,7 +4,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "zip": "node zipFiles.js",
@@ -21,12 +21,14 @@
     "patch-package": "8.0.0",
     "pg": "^8.16.0",
     "sequelize": "^6.6.5",
-    "sql.js": "1.10.3",
     "sql.js-as-sqlite3": "0.2.1"
   },
   "devDependencies": {
     "archiver": "^7.0.1",
     "eslint": "^8.0.0",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "sql.js": "^1.14.1",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.10"
   }
 }

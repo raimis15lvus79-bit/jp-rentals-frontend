@@ -1,69 +1,57 @@
-import { it, expect, describe, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { it, expect, describe, beforeEach, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import userEvent from '@testing-library/user-event';
-import axios from 'axios';
 import { HomePage } from './HomePage';
-
-vi.mock('axios');
 
 describe('HomePage component', () => {
   let loadCart;
 
   beforeEach(() => {
     loadCart = vi.fn();
-    
-
-    axios.get.mockImplementation(async (urlPath)=>{
-      if (urlPath === '/api/products') {
-        return {
-          data: [{
-            id: "e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
-            image: "images/products/athletic-cotton-socks-6-pairs.jpg",
-            name: "Black and Gray Athletic Cotton Socks - 6 Pairs",
-          rating: {
-            stars: 4.5,
-            count: 87
-          },
-          priceCents: 1090,
-          keywords: ["socks", "sports", "apparel"]
-        },
-        {
-          id: "15b6fc6f-327a-4ec4-896f-486349e85a3d",
-          image: "images/products/intermediate-composite-basketball.jpg",
-          name: "Intermediate Size Basketball",
-          rating: {
-            stars: 4,
-            count: 127
-          },
-          priceCents: 2095,
-          keywords: ["sports", "basketballs"]
-        }]
-        };
-      }
-    });
   });
 
-  it('displays the products correct', async () => {
+  it('displays the main rental-services content', () => {
+    render(
+      <MemoryRouter>
+        <HomePage cart={[]} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Party rentals that make your event feel easy, fun, and memorable.')).toBeInTheDocument();
+    expect(screen.getAllByText('White resin folding chairs').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Nerf war rentals').length).toBeGreaterThan(0);
+    expect(screen.getByText('Popular events')).toBeInTheDocument();
+    expect(screen.getByText('How it works')).toBeInTheDocument();
+    expect(screen.getByText('Service area')).toBeInTheDocument();
+    expect(screen.getByLabelText(/your name/i)).toBeInTheDocument();
+    expect(screen.getByText('Let’s make your event happen.')).toBeInTheDocument();
+  });
+
+  it('submits the quote form to the backend endpoint', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ message: 'Request received' }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
     render(
       <MemoryRouter>
         <HomePage cart={[]} loadCart={loadCart} />
       </MemoryRouter>
     );
 
-    const productContainers = await screen.findAllByTestId('product-container');
+    fireEvent.change(screen.getByLabelText(/your name/i), { target: { value: 'Jordan' } });
+    fireEvent.change(screen.getByLabelText(/event type/i), { target: { value: 'Birthday party' } });
+    fireEvent.change(screen.getByLabelText(/event date/i), { target: { value: 'July 20' } });
+    fireEvent.change(screen.getByLabelText(/what do you need/i), { target: { value: 'Tables and chairs' } });
+    fireEvent.click(screen.getByRole('button', { name: /send request/i }));
 
-    expect(productContainers.length).toBe(2);
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledWith('/api/quote-requests', expect.objectContaining({
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })));
 
-    expect(
-    within(productContainers[0])
-    .getByText("Black and Gray Athletic Cotton Socks - 6 Pairs")
-  ).toBeInTheDocument();
-
-    expect(
-    within(productContainers[1])
-    .getByText("Intermediate Size Basketball")
-  ).toBeInTheDocument();
-
+    expect(await screen.findByText(/thanks for your request/i)).toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 });

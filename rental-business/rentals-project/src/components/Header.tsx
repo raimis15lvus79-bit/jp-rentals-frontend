@@ -3,9 +3,9 @@ import './header.css';
 
 type HeaderProps = {
   cart: { 
-    productID: string;
+    productId: string;
     quantity: number;
-    deliveryOptionID: string;
+    deliveryOptionId: string;
   }[];
   };
 
@@ -21,9 +21,9 @@ cart.forEach((cartItem) => {
         <div className="left-section">
           <Link to="/" className="header-link">
             <img className="logo"
-              src="images/logo-white.png" />
+              src="images/logo-white.png" alt="JP Rentals and Events" />
             <img className="mobile-logo"
-              src="images/mobile-logo-white.png" />
+              src="images/mobile-logo-white.png" alt="JP Rentals and Events" />
           </Link>
         </div>
 
@@ -31,7 +31,7 @@ cart.forEach((cartItem) => {
           <input className="search-bar" type="text" placeholder="Search" />
 
           <button className="search-button">
-            <img className="search-icon" src="images/icons/search-icon.png" />
+            <img className="search-icon" src="images/icons/search-icon.png" alt="Search" />
           </button>
         </div>
 
@@ -42,7 +42,7 @@ cart.forEach((cartItem) => {
           </Link>
 
           <Link className="cart-link header-link" to="/checkout">
-            <img className="cart-icon" src="images/icons/cart-icon.png" />
+            <img className="cart-icon" src="images/icons/cart-icon.png" alt="Cart" />
             <div className="cart-quantity">{totalQuantity}</div>
             <div className="cart-text">Cart</div>
           </Link>

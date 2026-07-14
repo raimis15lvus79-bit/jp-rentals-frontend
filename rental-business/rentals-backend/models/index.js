@@ -42,7 +42,11 @@ if (isUsingRDS) {
 
 export async function saveDatabaseToFile() {
   const dbInstance = await sequelize.connectionManager.getConnection();
-  const binaryArray = dbInstance.database.export();
-  const buffer = Buffer.from(binaryArray);
-  fs.writeFileSync('database.sqlite', buffer);
+  try {
+    const binaryArray = dbInstance.database.export();
+    const buffer = Buffer.from(binaryArray);
+    fs.writeFileSync('database.sqlite', buffer);
+  } finally {
+    sequelize.connectionManager.releaseConnection(dbInstance);
+  }
 }

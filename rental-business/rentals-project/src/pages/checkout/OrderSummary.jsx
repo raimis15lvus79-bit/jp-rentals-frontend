@@ -9,7 +9,7 @@ export function OrderSummary({cart, deliveryOptions, loadCart}) {
       <div className="order-summary">
                   {deliveryOptions.length > 0 && cart.map((cartItem) => {
                     const selectedDeliveryOption = deliveryOptions.find((deliveryOption) => {
-                      return deliveryOption.id === cartItem.selectedDeliveryOptionId;
+return deliveryOption.id === cartItem.deliveryOptionId;
                     });
 
                     const deleteCartItem = async () => {
@@ -46,7 +46,18 @@ export function OrderSummary({cart, deliveryOptions, loadCart}) {
                               <span>
                                 Quantity: <span className="quantity-label">{cartItem.quantity}</span>
                               </span>
-                              <span className="update-quantity-link link-primary">
+                              <span className="update-quantity-link link-primary"
+                                onClick={() => {
+                                  const newQty = prompt('Enter new quantity:', cartItem.quantity);
+                                  if (newQty !== null) {
+                                    const parsed = parseInt(newQty, 10);
+                                    if (!isNaN(parsed) && parsed >= 1) {
+                                      axios.put(`/api/cart-items/${cartItem.productId}`, { quantity: parsed })
+                                        .then(() => loadCart())
+                                        .catch(err => console.error('Failed to update quantity:', err));
+                                    }
+                                  }
+                                }}>
                                 Update
                               </span>
                               <span className="delete-quantity-link link-primary"

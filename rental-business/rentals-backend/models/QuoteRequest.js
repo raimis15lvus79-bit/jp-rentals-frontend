@@ -1,31 +1,27 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from './index.js';
 
-export const CartItem = sequelize.define('CartItem', {
+export const QuoteRequest = sequelize.define('QuoteRequest', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  productId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: 'Products',
-      key: 'id'
-    }
-  },
-  quantity: {
-    type: DataTypes.INTEGER,
+  name: {
+    type: DataTypes.STRING,
     allowNull: false
   },
-  deliveryOptionId: {
+  event: {
     type: DataTypes.STRING,
-    allowNull: false,
-    references: {
-      model: 'DeliveryOptions',
-      key: 'id'
-    }
+    allowNull: false
+  },
+  date: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  details: {
+    type: DataTypes.TEXT,
+    allowNull: false
   },
   createdAt: {
     type: DataTypes.DATE(3)

@@ -9,11 +9,14 @@ import './OrdersPage.css';
 
 export function OrdersPage({ cart }) {
   const [orders, setOrders] = useState([]);
-
   useEffect(() => {
-    axios.get('/api/orders?expand=products').then((response) => {
-      setOrders(response.data);
-    });
+    axios.get('/api/orders?expand=products')
+      .then((response) => {
+        setOrders(response.data);
+      })
+      .catch((error) => {
+        console.error('Failed to fetch orders:', error);
+      });
   }, []);
 
   return (
