@@ -11,14 +11,14 @@ export function QuoteProvider({ children }) {
   const [fulfillmentType, setFulfillmentType] = useState('pickup');
   const [deliveryAddress, setDeliveryAddress] = useState('');
 
-  function addItem(product, quantity = 1) {
+  function addItem(product) {
     setItems((currentItems) => {
       const existingItem = currentItems.find((item) => item.id === product.id);
 
       if (existingItem) {
         return currentItems.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
@@ -26,71 +26,71 @@ export function QuoteProvider({ children }) {
       return [
         ...currentItems,
         {
-          id: product.id,
-          name: product.name,
-          priceCents: product.priceCents,
-          quantity,
-          image: product.image
+          ...product,
+          quantity: 1
         }
       ];
     });
   }
 
-  function updateQuantity(id, quantity) {
-    const numericQuantity = Number(quantity);
-
+  function removeItem(productId) {
     setItems((currentItems) =>
-      currentItems
-        .map((item) =>
-          item.id === id
-            ? { ...item, quantity: numericQuantity }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
+      currentItems.filter((item) => item.id !== productId)
     );
   }
 
-  function removeItem(id) {
+  function updateQuantity(productId, nextQuantity) {
+    const parsedQuantity = Number(nextQuantity);
+
+    if (!Number.isFinite(parsedQuantity) || parsedQuantity < 1) {
+      removeItem(productId);
+      return;
+    }
+
     setItems((currentItems) =>
-      currentItems.filter((item) => item.id !== id)
+      currentItems.map((item) =>
+        item.id === productId
+          ? { ...item, quantity: parsedQuantity }
+          : item
+      )
     );
   }
 
   function clearQuote() {
     setItems([]);
-    setRentalDates({ start: '', end: '' });
+    setRentalDates({
+      start: '',
+      end: ''
+    });
     setFulfillmentType('pickup');
     setDeliveryAddress('');
   }
 
-  const value = useMemo(() => {
-    return {
+  const value = useMemo(
+    () => ({
       items,
       rentalDates,
       fulfillmentType,
       deliveryAddress,
+      addItem,
+      removeItem,
+      updateQuantity,
+      clearQuote,
       setRentalDates,
       setFulfillmentType,
-      setDeliveryAddress,
-      addItem,
-      updateQuantity,
-      removeItem,
-      clearQuote
-    };
-  }, [items, rentalDates, fulfillmentType, deliveryAddress]);
-
-  return (
-    <QuoteContext.Provider value={value}>
-      {children}
-    </QuoteContext.Provider>
+      setDeliveryAddress
+    }),
+    [items, rentalDates, fulfillmentType, deliveryAddress]
   );
+
+  return <QuoteContext.Provider value={value}>{children}</QuoteContext.Provider>;
 }
 
 export function useQuote() {
   const context = useContext(QuoteContext);
 
   if (!context) {
-    throw new Error('useQuote must be used inside a QuoteProvider');
+    throw new Error('useQuote must be used within a QuoteProvider');
   }
 
   return context;

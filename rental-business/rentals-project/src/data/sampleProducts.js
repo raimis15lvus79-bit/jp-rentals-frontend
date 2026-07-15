@@ -3,11 +3,13 @@ export const sampleProducts = [
     id: 'white-resin-chair',
     name: 'White Resin Folding Chair',
     category: 'chairs',
+    sortOrder: 1,
     priceCents: 450,
+    pricingLabel: 'Starting at',
     image: '/images/white-resin-chair.jpg',
     shortDescription: 'Clean white folding chairs for weddings, parties, and formal events.',
     description:
-      'A popular seating option for weddings, graduations, showers, and backyard parties.',
+      'A popular seating option for weddings, graduations, showers, backyard parties, and upscale events.',
     available: true,
     featured: true
   },
@@ -15,11 +17,13 @@ export const sampleProducts = [
     id: '6ft-banquet-table',
     name: '6 Foot Folding Table',
     category: 'tables',
+    sortOrder: 2,
     priceCents: 1200,
+    pricingLabel: 'Starting at',
     image: '/images/6ft-table.jpg',
-    shortDescription: 'Standard 6 foot table for food, gifts, seating, and event setups.',
+    shortDescription: 'Reliable 6 foot table rental for food, gifts, seating, and displays.',
     description:
-      'Strong and reliable table rental for parties, graduations, and family gatherings.',
+      'A dependable event table for graduations, parties, showers, family gatherings, and business events.',
     available: true,
     featured: true
   },
@@ -27,11 +31,13 @@ export const sampleProducts = [
     id: 'rummage-sale-table',
     name: '6 Foot Rummage Sale Table',
     category: 'tables',
+    sortOrder: 2,
     priceCents: 1000,
+    pricingLabel: 'Starting at',
     image: '/images/rummage-table.jpg',
-    shortDescription: 'Simple table setup for rummage sales, vendor events, and temporary displays.',
+    shortDescription: 'Simple table setup for rummage sales, vendor booths, and temporary displays.',
     description:
-      'A practical option for sales, pop-up events, and community setup needs.',
+      'A practical rental option for sales, vendor events, community setups, and extra display space.',
     available: true,
     featured: false
   },
@@ -39,11 +45,13 @@ export const sampleProducts = [
     id: '9-hole-mini-golf',
     name: '9 Hole Premium Mini Golf',
     category: 'games',
+    sortOrder: 3,
     priceCents: 25000,
+    pricingLabel: 'Package pricing',
     image: '/images/mini-golf.jpg',
-    shortDescription: 'Featured rental for parties, schools, churches, and corporate events.',
+    shortDescription: 'Featured mini golf rental for parties, schools, churches, and company events.',
     description:
-      'A fun crowd favorite that works well for birthdays, school functions, and larger gatherings.',
+      'A premium event attraction that works well for larger parties, school events, church functions, and community gatherings.',
     available: true,
     featured: true
   },
@@ -51,11 +59,13 @@ export const sampleProducts = [
     id: 'nerf-wars-package',
     name: 'Nerf Wars Package',
     category: 'games',
+    sortOrder: 3,
     priceCents: 27500,
+    pricingLabel: 'Package pricing',
     image: '/images/nerf-wars.jpg',
     shortDescription: 'Includes blasters, darts, inflatables, barricade, goggles, and inflator.',
     description:
-      'Includes 25 blasters, 200 bullets, 4 inflatables, 1 barricade, safety goggles, and an inflator.',
+      'Includes 25 blasters, 200 bullets, 4 inflatables, 1 barricade, safety goggles, and an inflator for a full event package.',
     available: true,
     featured: false
   },
@@ -63,11 +73,13 @@ export const sampleProducts = [
     id: 'giant-jenga',
     name: 'Giant Jenga',
     category: 'yard-games',
+    sortOrder: 4,
     priceCents: 4500,
+    pricingLabel: 'Starting at',
     image: '/images/giant-jenga.jpg',
-    shortDescription: 'Classic oversized yard game for casual outdoor fun.',
+    shortDescription: 'Classic oversized yard game that works well for casual outdoor events.',
     description:
-      'A simple add-on rental that works great for backyard parties, weddings, and graduations.',
+      'A simple add-on rental for backyard parties, graduations, weddings, and family gatherings.',
     available: true,
     featured: false
   },
@@ -75,11 +87,13 @@ export const sampleProducts = [
     id: 'giant-connect-4',
     name: 'Giant Connect 4',
     category: 'yard-games',
+    sortOrder: 4,
     priceCents: 4500,
+    pricingLabel: 'Starting at',
     image: '/images/giant-connect-4.jpg',
     shortDescription: 'Large-format party game for guests of all ages.',
     description:
-      'A fun social game that fits well at outdoor events, family parties, and school functions.',
+      'A fun and easy social game that works for outdoor events, parties, and school functions.',
     available: false,
     featured: false
   },
@@ -87,11 +101,13 @@ export const sampleProducts = [
     id: 'shape-toss',
     name: 'Shape Toss Game',
     category: 'yard-games',
+    sortOrder: 4,
     priceCents: 3500,
+    pricingLabel: 'Starting at',
     image: '/images/shape-toss.jpg',
-    shortDescription: 'Easy game option for kids and family events.',
+    shortDescription: 'Easy party game for kids, families, and community events.',
     description:
-      'A simple, family-friendly game for parties, church events, and community gatherings.',
+      'A family-friendly game option for birthday parties, church events, school functions, and local gatherings.',
     available: true,
     featured: false
   },
@@ -99,11 +115,13 @@ export const sampleProducts = [
     id: '4oz-popcorn-machine',
     name: '4oz Kettle Popcorn Machine',
     category: 'concessions',
+    sortOrder: 5,
     priceCents: 8500,
+    pricingLabel: 'Request pricing',
     image: '/images/4oz-popcorn.jpg',
-    shortDescription: 'Compact popcorn machine rental for smaller events.',
+    shortDescription: 'Compact popcorn machine rental for smaller events and parties.',
     description:
-      'Great for birthdays, school events, and backyard parties where you want a fun snack option.',
+      'A fun concession add-on for birthdays, school functions, and smaller backyard events.',
     available: true,
     featured: false
   },
@@ -111,11 +129,13 @@ export const sampleProducts = [
     id: '6oz-popcorn-machine',
     name: '6oz Kettle Popcorn Machine',
     category: 'concessions',
+    sortOrder: 5,
     priceCents: 10500,
+    pricingLabel: 'Request pricing',
     image: '/images/6oz-popcorn.jpg',
-    shortDescription: 'Larger popcorn machine for higher guest counts.',
+    shortDescription: 'Larger popcorn machine rental for bigger guest counts.',
     description:
-      'A strong option for bigger events that need a higher-volume concessions setup.',
+      'A strong concessions option for larger events that need higher serving volume.',
     available: true,
     featured: false
   },
@@ -123,11 +143,13 @@ export const sampleProducts = [
     id: 'cotton-candy-machine',
     name: 'Cotton Candy Machine',
     category: 'concessions',
+    sortOrder: 5,
     priceCents: 9500,
+    pricingLabel: 'Request pricing',
     image: '/images/cotton-candy.jpg',
-    shortDescription: 'Fun concession add-on for kids parties and school events.',
+    shortDescription: 'Popular concession machine for kids parties and fun event setups.',
     description:
-      'A popular party add-on that pairs well with games, mini golf, and family events.',
+      'A popular add-on for birthdays, school events, family gatherings, and party packages.',
     available: true,
     featured: false
   }

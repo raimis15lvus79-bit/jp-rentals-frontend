@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { Header } from '../../components/Header/Header';
 import { ProductCard } from '../../components/ProductCard/ProductCard';
@@ -17,12 +18,25 @@ export function RentalsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const filteredProducts = useMemo(() => {
-    if (selectedCategory === 'all') {
-      return sampleProducts;
-    }
+    const products =
+      selectedCategory === 'all'
+        ? sampleProducts
+        : sampleProducts.filter((product) => product.category === selectedCategory);
 
-    return sampleProducts.filter((product) => product.category === selectedCategory);
+    return [...products].sort((a, b) => {
+      if (a.sortOrder !== b.sortOrder) {
+        return a.sortOrder - b.sortOrder;
+      }
+
+      if (a.featured !== b.featured) {
+        return a.featured ? -1 : 1;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
   }, [selectedCategory]);
+
+  const visibleProducts = filteredProducts.filter((product) => product.available);
 
   return (
     <>
@@ -33,7 +47,7 @@ export function RentalsPage() {
           <p className="rentals-eyebrow">Browse rentals</p>
           <h1>Chairs, tables, games, concessions, and event rentals.</h1>
           <p>
-            Explore available rentals and add items to your quote before sending your inquiry.
+            Browse available rental items, review details, and add products to your quote before submitting your inquiry.
           </p>
         </section>
 
@@ -53,9 +67,21 @@ export function RentalsPage() {
         </section>
 
         <section className="rentals-grid">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {visibleProducts.length > 0 ? (
+            visibleProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            <div className="rentals-empty-state">
+              <h2>No rentals available in this category right now.</h2>
+              <p>
+                Try another category or continue to your quote to review the rental items you already selected.
+              </p>
+              <Link to="/quote" className="primary-button">
+                View Quote
+              </Link>
+            </div>
+          )}
         </section>
       </main>
     </>

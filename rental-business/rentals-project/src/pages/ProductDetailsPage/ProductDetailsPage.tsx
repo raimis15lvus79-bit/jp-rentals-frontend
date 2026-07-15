@@ -1,76 +1,115 @@
-import { useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Header } from '../../components/Header/Header';
-import { sampleProducts } from '../../data/sampleProducts';
 import { useQuote } from '../../context/QuoteContext';
+import { sampleProducts } from '../../data/sampleProducts';
 import { formatMoney } from '../../utils/money';
 import './ProductDetailsPage.css';
+
+function formatCategoryLabel(category) {
+  if (category === 'yard-games') {
+    return 'Yard Games';
+  }
+
+  return category.charAt(0).toUpperCase() + category.slice(1);
+}
 
 export function ProductDetailsPage() {
   const { id } = useParams();
   const { addItem } = useQuote();
-  const [quantity, setQuantity] = useState(1);
 
-  const product = useMemo(
-    () => sampleProducts.find((item) => item.id === id),
-    [id]
-  );
+  const product = sampleProducts.find((item) => item.id === id);
 
   if (!product) {
     return (
       <>
         <Header />
         <main className="product-details-page">
-          <h1>Rental not found</h1>
-          <p>We could not find that rental item.</p>
-          <Link to="/rentals">Back to rentals</Link>
+          <section className="product-details-empty">
+            <p className="product-details-eyebrow">Rental not found</p>
+            <h1>We couldn’t find that rental item.</h1>
+            <p>Try going back to the rentals page to browse available items.</p>
+            <Link to="/rentals" className="primary-button">
+              Back to Rentals
+            </Link>
+          </section>
         </main>
       </>
     );
   }
 
+  const isUnavailable = !product.available;
+
+  function renderPricingText() {
+    if (product.pricingLabel === 'Request pricing') {
+      return 'Request pricing';
+    }
+
+    return `${product.pricingLabel} ${formatMoney(product.priceCents)}`;
+  }
+
   function handleAddToQuote() {
-    addItem(product, quantity);
+    if (isUnavailable) {
+      return;
+    }
+
+    addItem(product);
   }
 
   return (
     <>
       <Header />
+
       <main className="product-details-page">
-        <section className="product-details-card">
-          <div className="product-details-image">
-            <img src={product.image} alt={product.name} />
+        <section className="product-details-layout">
+          <div className="product-details-image-wrap">
+            <img
+              src={product.image}
+              alt={product.name}
+              className="product-details-image"
+            />
           </div>
 
-          <div className="product-details-info">
-            <p className="product-category">{product.category}</p>
+          <div className="product-details-content">
+            <p className="product-details-category">
+              {formatCategoryLabel(product.category)}
+            </p>
+
             <h1>{product.name}</h1>
-            <p className="product-description">{product.description}</p>
-            <p className="product-price">{formatMoney(product.priceCents)}</p>
 
-            <ul className="product-notes">
-              <li>Request pricing and availability for your event date.</li>
-              <li>Pickup and delivery quote options available.</li>
-              <li>Final contract is completed after inquiry review.</li>
-            </ul>
+            <p
+              className={`product-details-status ${
+                isUnavailable ? 'unavailable' : 'available'
+              }`}
+            >
+              {isUnavailable ? 'Currently unavailable' : 'Available for inquiry'}
+            </p>
 
-            <label className="quantity-field">
-              Quantity
-              <input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-              />
-            </label>
+            <p className="product-details-price">{renderPricingText()}</p>
 
-            <div className="product-actions">
-              <button type="button" className="primary-button" onClick={handleAddToQuote}>
-                Add to quote
+            <p className="product-details-description">{product.description}</p>
+
+            <div className="product-details-actions">
+              <button
+                type="button"
+                className="primary-button"
+                onClick={handleAddToQuote}
+                disabled={isUnavailable}
+              >
+                {isUnavailable ? 'Not Available' : 'Add to Quote'}
               </button>
+
               <Link to="/quote" className="secondary-button">
-                View quote
+                View Quote
               </Link>
+            </div>
+
+            <div className="product-details-note">
+              <p>
+                Final pricing and availability are confirmed after your inquiry is reviewed.
+              </p>
+              <p>
+                Pickup and delivery quote options are available during the quote process.
+              </p>
             </div>
           </div>
         </section>

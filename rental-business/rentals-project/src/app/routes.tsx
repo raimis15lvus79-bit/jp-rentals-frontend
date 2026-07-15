@@ -12,7 +12,7 @@ export default function AppRoutes() {
       <Route path="/rentals" element={<RentalsPage />} />
       <Route path="/rentals/:id" element={<ProductDetailsPage />} />
       <Route path="/quote" element={<QuotePage />} />
-      <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/checkout/success" element={<CheckoutPage />} />
     </Routes>
   );
 }

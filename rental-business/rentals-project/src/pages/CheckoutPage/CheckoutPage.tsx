@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
-import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { Header } from '../../components/Header/Header';
 import { useQuote } from '../../context/QuoteContext';
-import { formatMoney } from '../../utils/money';
 import './CheckoutPage.css';
 
 export function CheckoutPage() {
+  const navigate = useNavigate();
   const {
     items,
     rentalDates,
@@ -15,23 +15,23 @@ export function CheckoutPage() {
   } = useQuote();
 
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     email: '',
-    phone: '',
     eventType: '',
+    guestCount: '',
     notes: ''
   });
 
-  const [status, setStatus] = useState('idle');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
-  const subtotalCents = useMemo(() => {
-    return items.reduce((sum, item) => sum + item.priceCents * item.quantity, 0);
-  }, [items]);
+  const hasItems = items.length > 0;
 
   function handleChange(event) {
     const { name, value } = event.target;
-    setFormData((current) => ({
-      ...current,
+
+    setFormData((currentData) => ({
+      ...currentData,
       [name]: value
     }));
   }
@@ -39,191 +39,197 @@ export function CheckoutPage() {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (items.length === 0) {
-      setStatus('error');
+    if (!hasItems || isSubmitting) {
       return;
     }
 
-    if (fulfillmentType === 'delivery' && !deliveryAddress.trim()) {
-      setStatus('error');
-      return;
-    }
+    setSubmitError('');
+    setIsSubmitting(true);
 
-    setStatus('submitting');
-
-    try {
-      await axios.post('/api/quotes', {
-        customer: formData,
+    const payload = {
+      customer: formData,
+      quote: {
+        items,
         rentalDates,
         fulfillmentType,
-        deliveryAddress,
-        items
+        deliveryAddress
+      }
+    };
+
+    try {
+      const response = await fetch('/api/quotes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
 
+      if (!response.ok) {
+        throw new Error('Failed to submit inquiry');
+      }
+
       clearQuote();
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        eventType: '',
-        notes: ''
-      });
-      setStatus('success');
+      navigate('/checkout/success');
     } catch (error) {
-      console.error('Failed to submit inquiry:', error);
-      setStatus('error');
+      console.error(error);
+      setSubmitError('There was a problem submitting your inquiry. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
+  }
+
+  if (!hasItems) {
+    return (
+      <>
+        <Header />
+        <main className="checkout-page">
+          <section className="checkout-empty-state">
+            <h1>No rental items in your quote.</h1>
+            <p>Add rental items before moving to checkout.</p>
+            <Link to="/rentals" className="primary-button">
+              Browse Rentals
+            </Link>
+          </section>
+        </main>
+      </>
+    );
   }
 
   return (
     <>
       <Header />
+
       <main className="checkout-page">
         <section className="checkout-header">
-          <p className="checkout-eyebrow">Final step</p>
-          <h1>Complete your inquiry</h1>
+          <p className="checkout-eyebrow">Checkout</p>
+          <h1>Submit your rental inquiry.</h1>
           <p>
-            Submit your rental request and we’ll review availability, pricing, and send contract details by email.
+            Enter your contact information and event details. Final pricing,
+            availability, and contract details will be confirmed by email.
           </p>
         </section>
 
-        <div className="checkout-layout">
-          <section className="checkout-main">
-            <form className="checkout-form-card" onSubmit={handleSubmit}>
-              <h2>Customer details</h2>
+        <section className="checkout-layout">
+          <form className="checkout-form-card" onSubmit={handleSubmit}>
+            <h2>Contact details</h2>
 
-              <div className="checkout-fields">
-                <label>
-                  Full name
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
-                </label>
+            <div className="checkout-form-grid">
+              <label>
+                Full name
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
 
-                <label>
-                  Email
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </label>
+              <label>
+                Email address
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
 
-                <label>
-                  Phone
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
-                </label>
+              <label>
+                Event type
+                <input
+                  type="text"
+                  name="eventType"
+                  value={formData.eventType}
+                  onChange={handleChange}
+                  placeholder="Birthday party, wedding, graduation, etc."
+                />
+              </label>
 
-                <label>
-                  Event type
-                  <input
-                    type="text"
-                    name="eventType"
-                    value={formData.eventType}
-                    onChange={handleChange}
-                    placeholder="Birthday, graduation, wedding, church event"
-                  />
-                </label>
+              <label>
+                Estimated guest count
+                <input
+                  type="number"
+                  name="guestCount"
+                  min="1"
+                  value={formData.guestCount}
+                  onChange={handleChange}
+                />
+              </label>
+            </div>
 
-                <label className="full-width">
-                  Event notes
-                  <textarea
-                    name="notes"
-                    rows="5"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    placeholder="Share any important event details, setup needs, or timing notes."
-                  />
-                </label>
-              </div>
+            <label className="checkout-notes-field">
+              Notes
+              <textarea
+                name="notes"
+                rows="5"
+                value={formData.notes}
+                onChange={handleChange}
+                placeholder="Share any setup notes, event timing, or extra details."
+              />
+            </label>
 
+            {submitError ? (
+              <p className="checkout-error-message">{submitError}</p>
+            ) : null}
+
+            <div className="checkout-actions">
               <button
                 type="submit"
                 className="primary-button"
-                disabled={status === 'submitting'}
+                disabled={isSubmitting}
               >
-                {status === 'submitting' ? 'Submitting...' : 'Submit Inquiry'}
+                {isSubmitting ? 'Submitting...' : 'Submit Inquiry'}
               </button>
 
-              {status === 'success' && (
-                <p className="checkout-message success">
-                  Your inquiry was sent successfully. We’ll follow up with availability and next steps.
-                </p>
-              )}
+              <Link to="/quote" className="secondary-button">
+                Back to Quote
+              </Link>
+            </div>
+          </form>
 
-              {status === 'error' && (
-                <p className="checkout-message error">
-                  Please make sure your quote has items, and add a delivery address if you selected delivery.
-                </p>
-              )}
-            </form>
-          </section>
+          <aside className="checkout-summary-card">
+            <h2>Quote summary</h2>
 
-          <aside className="checkout-sidebar">
-            <div className="checkout-summary-card">
-              <h2>Quote summary</h2>
-
-              <div className="summary-row">
-                <span>Items</span>
-                <span>{items.length}</span>
-              </div>
-
-              <div className="summary-row">
-                <span>Dates</span>
-                <span>
-                  {rentalDates.start || 'Not selected'} - {rentalDates.end || 'Not selected'}
-                </span>
-              </div>
-
-              <div className="summary-row">
-                <span>Fulfillment</span>
-                <span>{fulfillmentType === 'delivery' ? 'Delivery quote' : 'Pickup'}</span>
-              </div>
-
-              {fulfillmentType === 'delivery' && (
-                <div className="summary-row">
-                  <span>Address</span>
-                  <span>{deliveryAddress || 'Not provided'}</span>
-                </div>
-              )}
-
-              <div className="checkout-items">
-                {items.length === 0 ? (
-                  <p className="empty-summary">No items selected yet.</p>
-                ) : (
-                  items.map((item) => (
-                    <div key={item.id} className="checkout-item-row">
-                      <span>
-                        {item.name} x {item.quantity}
-                      </span>
-                      <span>{formatMoney(item.priceCents * item.quantity)}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="summary-row total-row">
-                <span>Estimated subtotal</span>
-                <strong>{formatMoney(subtotalCents)}</strong>
-              </div>
-
-              <p className="summary-note">
-                Final pricing is confirmed after availability review and delivery quote review when needed.
+            <div className="checkout-summary-block">
+              <h3>Rental dates</h3>
+              <p>
+                {rentalDates.start || 'Not selected'} to{' '}
+                {rentalDates.end || 'Not selected'}
               </p>
             </div>
+
+            <div className="checkout-summary-block">
+              <h3>Fulfillment</h3>
+              <p>{fulfillmentType === 'delivery' ? 'Quote for delivery' : 'Pickup'}</p>
+            </div>
+
+            {fulfillmentType === 'delivery' && (
+              <div className="checkout-summary-block">
+                <h3>Delivery address</h3>
+                <p>{deliveryAddress || 'Not provided'}</p>
+              </div>
+            )}
+
+            <div className="checkout-summary-block">
+              <h3>Selected rentals</h3>
+              <ul className="checkout-item-list">
+                {items.map((item) => (
+                  <li key={item.id}>
+                    {item.name} x {item.quantity}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <p className="checkout-note">
+              After submission, you can review the request, send pricing, and
+              complete the contract by email.
+            </p>
           </aside>
-        </div>
+        </section>
       </main>
     </>
   );
