@@ -4,10 +4,17 @@ import { ProductCard } from '../../components/ProductCard/ProductCard';
 import { sampleProducts } from '../../data/sampleProducts';
 import './RentalsPage.css';
 
+const categories = [
+  { label: 'All Rentals', value: 'all' },
+  { label: 'Chairs', value: 'chairs' },
+  { label: 'Tables', value: 'tables' },
+  { label: 'Games', value: 'games' },
+  { label: 'Yard Games', value: 'yard-games' },
+  { label: 'Concessions', value: 'concessions' }
+];
+
 export function RentalsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
-
-  const categories = ['all', 'tables', 'chairs', 'yard-games', 'event-items'];
 
   const filteredProducts = useMemo(() => {
     if (selectedCategory === 'all') {
@@ -20,24 +27,27 @@ export function RentalsPage() {
   return (
     <>
       <Header />
+
       <main className="rentals-page">
-        <section className="rentals-header">
-          <p className="rentals-eyebrow">Rental inventory</p>
-          <h1>Browse rentals</h1>
+        <section className="rentals-hero">
+          <p className="rentals-eyebrow">Browse rentals</p>
+          <h1>Chairs, tables, games, concessions, and event rentals.</h1>
           <p>
-            Choose the items you need, then build your quote online.
+            Explore available rentals and add items to your quote before sending your inquiry.
           </p>
         </section>
 
-        <section className="rentals-filters">
+        <section className="rentals-filters" aria-label="Rental categories">
           {categories.map((category) => (
             <button
-              key={category}
+              key={category.value}
               type="button"
-              className={selectedCategory === category ? 'filter-button active' : 'filter-button'}
-              onClick={() => setSelectedCategory(category)}
+              className={`filter-button ${
+                selectedCategory === category.value ? 'active' : ''
+              }`}
+              onClick={() => setSelectedCategory(category.value)}
             >
-              {category}
+              {category.label}
             </button>
           ))}
         </section>

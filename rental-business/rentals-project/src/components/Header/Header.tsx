@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import './Header.css';
 
 export function Header() {
@@ -10,9 +10,9 @@ export function Header() {
         </Link>
 
         <nav className="site-header__nav" aria-label="Main navigation">
-          <Link to="/">Home</Link>
-          <Link to="/rentals">Rentals</Link>
-          <Link to="/quote">Request Pricing</Link>
+          <NavLink to="/">Home</NavLink>
+          <NavLink to="/rentals">Rentals</NavLink>
+          <NavLink to="/quote">Request Pricing</NavLink>
         </nav>
       </div>
     </header>
