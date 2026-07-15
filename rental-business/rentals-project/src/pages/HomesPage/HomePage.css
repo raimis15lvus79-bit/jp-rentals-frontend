@@ -1,0 +1,145 @@
+.home-page {
+  padding-bottom: 80px;
+}
+
+.hero-section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 72px 20px 48px;
+}
+
+.hero-content {
+  max-width: 760px;
+}
+
+.hero-eyebrow {
+  margin-bottom: 12px;
+  color: #0f766e;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 13px;
+}
+
+.hero-content h1 {
+  margin: 0 0 16px;
+  font-size: 46px;
+  line-height: 1.1;
+}
+
+.hero-text {
+  max-width: 620px;
+  margin: 0 0 24px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #444;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.home-section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.section-heading {
+  margin-bottom: 20px;
+}
+
+.section-heading h2 {
+  margin: 0 0 8px;
+  font-size: 30px;
+}
+
+.section-heading p {
+  margin: 0;
+  color: #555;
+}
+
+.feature-grid,
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.feature-card,
+.step-card,
+.cta-section {
+  background: #ffffff;
+  border: 1px solid rgb(225, 225, 225);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.feature-card h3,
+.step-card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.feature-card p,
+.step-card p {
+  margin: 0;
+  line-height: 1.6;
+  color: #555;
+}
+
+.step-card span {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  background: #0f766e;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.cta-section {
+  text-align: left;
+  margin-top: 24px;
+}
+
+.cta-section h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.cta-section p {
+  margin-bottom: 18px;
+  max-width: 640px;
+  color: #555;
+}
+
+@media (max-width: 900px) {
+  .feature-grid,
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-content h1 {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-section {
+    padding-top: 56px;
+  }
+
+  .hero-content h1 {
+    font-size: 32px;
+  }
+
+  .hero-text {
+    font-size: 16px;
+  }
+}
