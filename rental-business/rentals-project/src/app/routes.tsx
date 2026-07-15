@@ -4,6 +4,7 @@ import { RentalsPage } from '../pages/RentalsPage/RentalsPage';
 import { ProductDetailsPage } from '../pages/ProductDetailsPage/ProductDetailsPage';
 import { QuotePage } from '../pages/QuotePage/QuotePage';
 import { CheckoutPage } from '../pages/CheckoutPage/CheckoutPage';
+import { CheckoutSuccessPage } from '../pages/CheckoutSuccessPage/CheckoutSuccessPage';
 
 export default function AppRoutes() {
   return (
@@ -12,7 +13,8 @@ export default function AppRoutes() {
       <Route path="/rentals" element={<RentalsPage />} />
       <Route path="/rentals/:id" element={<ProductDetailsPage />} />
       <Route path="/quote" element={<QuotePage />} />
-      <Route path="/checkout/success" element={<CheckoutPage />} />
+      <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
     </Routes>
   );
 }

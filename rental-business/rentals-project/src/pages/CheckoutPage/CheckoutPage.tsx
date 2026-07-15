@@ -27,57 +27,64 @@ export function CheckoutPage() {
 
   const hasItems = items.length > 0;
 
-  function handleChange(event) {
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = event.target;
 
     setFormData((currentData) => ({
       ...currentData,
       [name]: value
     }));
-  }
+  };
 
-  async function handleSubmit(event) {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    if (!hasItems || isSubmitting) {
-      return;
-    }
 
     setSubmitError('');
     setIsSubmitting(true);
 
     const payload = {
-      customer: formData,
+      customer: {
+        fullName: formData.fullName,
+        email: formData.email,
+        eventType: formData.eventType,
+        guestCount: formData.guestCount,
+        notes: formData.notes
+      },
       quote: {
         items,
-        rentalDates,
+        rentalDates: {
+          start: rentalDates.start,
+          end: rentalDates.end
+        },
         fulfillmentType,
         deliveryAddress
       }
     };
 
     try {
-      const response = await fetch('/api/quotes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+  const response = await fetch('/api/quotes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit inquiry');
-      }
-
-      clearQuote();
-      navigate('/checkout/success');
-    } catch (error) {
-      console.error(error);
-      setSubmitError('There was a problem submitting your inquiry. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+  if (!response.ok) {
+    throw new Error('Failed to submit inquiry');
   }
+
+  clearQuote();
+  navigate('/checkout/success');
+} catch (error) {
+  console.error(error);
+  setSubmitError('There was a problem submitting your inquiry. Please try again.');
+} finally {
+  setIsSubmitting(false);
+}
+  };
 
   if (!hasItems) {
     return (
@@ -164,7 +171,7 @@ export function CheckoutPage() {
               Notes
               <textarea
                 name="notes"
-                rows="5"
+                rows={5}
                 value={formData.notes}
                 onChange={handleChange}
                 placeholder="Share any setup notes, event timing, or extra details."
