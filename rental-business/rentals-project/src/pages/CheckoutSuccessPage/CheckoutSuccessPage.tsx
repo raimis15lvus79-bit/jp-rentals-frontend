@@ -10,7 +10,10 @@ export function CheckoutSuccessPage() {
       <main className="checkout-success-page">
         <section className="checkout-success-card">
           <p className="checkout-success-eyebrow">Inquiry received</p>
-          <h1>Thanks — your rental inquiry has been submitted.</h1>
+
+          <div className="checkout-success-icon">✓</div>
+
+          <h1>Thanks — we’ve received your rental inquiry.</h1>
           <p className="checkout-success-intro">
             We’ll review your requested rentals, check availability, and follow up
             by email with pricing and next steps.

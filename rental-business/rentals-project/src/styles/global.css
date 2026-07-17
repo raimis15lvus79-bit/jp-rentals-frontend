@@ -41,6 +41,7 @@ a {
   text-decoration: none;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
 }
 
 .primary-button {
@@ -57,8 +58,11 @@ a {
 
 .primary-button:hover {
   background: #0c5f58;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+  transform: translateY(-1px);
 }
 
 .secondary-button:hover {
-  background: #f4f4f4;
+  background: #f8fafc;
+  transform: translateY(-1px);
 }

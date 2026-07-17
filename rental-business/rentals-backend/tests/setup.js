@@ -11,168 +11,212 @@ const sequelize = new Sequelize({
 
 // Define models inline to avoid importing from the main app
 // (which would trigger hooks and file-based SQLite persistence)
-export const Product = sequelize.define('Product', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-  image: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  rating: {
-    type: DataTypes.JSON,
-    allowNull: false,
-  },
-  priceCents: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  keywords: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    get() {
-      return this.getDataValue('keywords').split(',');
+export const Product = sequelize.define(
+  'Product',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    set(val) {
-      this.setDataValue('keywords', val.join(','));
+    image: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    rating: {
+      type: DataTypes.JSON,
+      allowNull: false,
+    },
+    priceCents: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    keywords: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      get() {
+        return this.getDataValue('keywords').split(',');
+      },
+      set(val) {
+        this.setDataValue('keywords', val.join(','));
+      },
+    },
+    createdAt: {
+      type: DataTypes.DATE(3),
+    },
+    updatedAt: {
+      type: DataTypes.DATE(3),
     },
   },
-  createdAt: {
-    type: DataTypes.DATE(3),
-  },
-  updatedAt: {
-    type: DataTypes.DATE(3),
-  },
-}, {
-  defaultScope: {
-    order: [['createdAt', 'ASC']],
-  },
-});
+  {
+    defaultScope: {
+      order: [['createdAt', 'ASC']],
+    },
+  }
+);
 
-export const DeliveryOption = sequelize.define('DeliveryOption', {
-  id: {
-    type: DataTypes.STRING,
-    primaryKey: true,
+export const DeliveryOption = sequelize.define(
+  'DeliveryOption',
+  {
+    id: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+    },
+    deliveryDays: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    priceCents: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    createdAt: {
+      type: DataTypes.DATE(3),
+    },
+    updatedAt: {
+      type: DataTypes.DATE(3),
+    },
   },
-  deliveryDays: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  priceCents: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  createdAt: {
-    type: DataTypes.DATE(3),
-  },
-  updatedAt: {
-    type: DataTypes.DATE(3),
-  },
-}, {
-  defaultScope: {
-    order: [['createdAt', 'ASC']],
-  },
-});
+  {
+    defaultScope: {
+      order: [['createdAt', 'ASC']],
+    },
+  }
+);
 
-export const CartItem = sequelize.define('CartItem', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
+export const CartItem = sequelize.define(
+  'CartItem',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    productId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    quantity: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    deliveryOptionId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    createdAt: {
+      type: DataTypes.DATE(3),
+    },
+    updatedAt: {
+      type: DataTypes.DATE(3),
+    },
   },
-  productId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-  },
-  quantity: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  deliveryOptionId: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  createdAt: {
-    type: DataTypes.DATE(3),
-  },
-  updatedAt: {
-    type: DataTypes.DATE(3),
-  },
-}, {
-  defaultScope: {
-    order: [['createdAt', 'ASC']],
-  },
-});
+  {
+    defaultScope: {
+      order: [['createdAt', 'ASC']],
+    },
+  }
+);
 
-export const Order = sequelize.define('Order', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
+export const Order = sequelize.define(
+  'Order',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    orderTimeMs: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
+    totalCostCents: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    products: {
+      type: DataTypes.JSON,
+      allowNull: false,
+    },
+    createdAt: {
+      type: DataTypes.DATE(3),
+    },
+    updatedAt: {
+      type: DataTypes.DATE(3),
+    },
   },
-  orderTimeMs: {
-    type: DataTypes.BIGINT,
-    allowNull: false,
-  },
-  totalCostCents: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  products: {
-    type: DataTypes.JSON,
-    allowNull: false,
-  },
-  createdAt: {
-    type: DataTypes.DATE(3),
-  },
-  updatedAt: {
-    type: DataTypes.DATE(3),
-  },
-}, {
-  defaultScope: {
-    order: [['createdAt', 'ASC']],
-  },
-});
+  {
+    defaultScope: {
+      order: [['createdAt', 'ASC']],
+    },
+  }
+);
 
-export const QuoteRequest = sequelize.define('QuoteRequest', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
+export const QuoteRequest = sequelize.define(
+  'QuoteRequest',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    customerFullName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    customerEmail: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    customerEventType: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    customerGuestCount: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    customerNotes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    rentalStart: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    rentalEnd: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    fulfillmentType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    deliveryAddress: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    items: {
+      type: DataTypes.JSON,
+      allowNull: false,
+    },
+    createdAt: {
+      type: DataTypes.DATE(3),
+    },
+    updatedAt: {
+      type: DataTypes.DATE(3),
+    },
   },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  event: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  date: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  details: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  createdAt: {
-    type: DataTypes.DATE(3),
-  },
-  updatedAt: {
-    type: DataTypes.DATE(3),
-  },
-}, {
-  defaultScope: {
-    order: [['createdAt', 'ASC']],
-  },
-});
+  {
+    defaultScope: {
+      order: [['createdAt', 'ASC']],
+    },
+  }
+);
 
 // Default data for seeding
 export const defaultProducts = [
@@ -268,11 +312,5 @@ export async function seedDatabase() {
   await CartItem.bulkCreate(cartItemsWithTimestamps);
   await Order.bulkCreate(ordersWithTimestamps);
 }
-
-// Global setup: sync models before all tests
-beforeAll(async () => {
-  await sequelize.sync({ force: true });
-  await seedDatabase();
-});
 
 export { sequelize };

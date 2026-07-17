@@ -3,6 +3,10 @@ import nodemailer from 'nodemailer';
 
 const router = express.Router();
 
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  console.warn('Missing EMAIL_USER or EMAIL_PASS environment variables.');
+}
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -15,65 +19,89 @@ router.post('/', async (req, res) => {
   try {
     const { customer, quote } = req.body;
 
-    if (
-      !customer ||
-      !customer.fullName?.trim() ||
-      !customer.email?.trim() ||
-      !quote ||
-      !Array.isArray(quote.items) ||
-      quote.items.length === 0
-    ) {
+    const fullName = customer?.fullName?.trim() || '';
+    const email = customer?.email?.trim() || '';
+    const eventType = customer?.eventType?.trim() || '';
+    const guestCount = customer?.guestCount?.toString().trim() || '';
+    const notes = customer?.notes?.trim() || '';
+
+    const fulfillmentType = quote?.fulfillmentType?.trim() || '';
+    const deliveryAddress = quote?.deliveryAddress?.trim() || '';
+    const rentalStart = quote?.rentalDates?.start?.trim() || '';
+    const rentalEnd = quote?.rentalDates?.end?.trim() || '';
+    const items = Array.isArray(quote?.items) ? quote.items : [];
+
+    if (!fullName || !email || items.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'Please complete the required quote request details.'
       });
     }
 
-    if (
-      quote.fulfillmentType === 'delivery' &&
-      (!quote.deliveryAddress || !quote.deliveryAddress.trim())
-    ) {
+    if (fulfillmentType === 'delivery' && !deliveryAddress) {
       return res.status(400).json({
         success: false,
         message: 'Delivery address is required for delivery quotes.'
       });
     }
 
-    const itemsList = quote.items
+    const invalidItem = items.find(
+      (item) =>
+        !item ||
+        !item.name ||
+        typeof item.quantity !== 'number' ||
+        item.quantity < 1
+    );
+
+    if (invalidItem) {
+      return res.status(400).json({
+        success: false,
+        message: 'One or more rental items are invalid.'
+      });
+    }
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      return res.status(500).json({
+        success: false,
+        message: 'Email service is not configured.'
+      });
+    }
+
+    const itemsList = items
       .map((item) => `- ${item.name} x ${item.quantity}`)
       .join('\n');
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.QUOTE_TO_EMAIL || process.env.EMAIL_USER,
-      replyTo: customer.email,
-      subject: `New Quote Request from ${customer.fullName}`,
+      replyTo: email,
+      subject: `New Quote Request from ${fullName}`,
       text: `
 New quote request received
 
 Customer Information
-Name: ${customer.fullName}
-Email: ${customer.email}
-Event Type: ${customer.eventType || 'Not provided'}
-Guest Count: ${customer.guestCount || 'Not provided'}
+Name: ${fullName}
+Email: ${email}
+Event Type: ${eventType || 'Not provided'}
+Guest Count: ${guestCount || 'Not provided'}
 
 Quote Details
-Rental Start: ${quote.rentalDates?.start || 'Not provided'}
-Rental End: ${quote.rentalDates?.end || 'Not provided'}
-Fulfillment Type: ${quote.fulfillmentType || 'Not provided'}
-Delivery Address: ${quote.deliveryAddress || 'Not provided'}
+Rental Start: ${rentalStart || 'Not provided'}
+Rental End: ${rentalEnd || 'Not provided'}
+Fulfillment Type: ${fulfillmentType || 'Not provided'}
+Delivery Address: ${deliveryAddress || 'Not provided'}
 
 Requested Items
 ${itemsList}
 
 Notes
-${customer.notes || 'No notes provided'}
+${notes || 'No notes provided'}
       `.trim()
     };
 
     await transporter.sendMail(mailOptions);
 
-    console.log('New quote request emailed:', req.body);
+    console.log('New quote request emailed successfully.');
 
     return res.status(201).json({
       success: true,
@@ -84,7 +112,7 @@ ${customer.notes || 'No notes provided'}
 
     return res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error. Please try again.'
     });
   }
 });

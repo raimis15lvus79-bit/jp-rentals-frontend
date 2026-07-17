@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Header } from '../../components/Header/Header';
 import { useQuote } from '../../context/QuoteContext';
 import './CheckoutPage.css';
@@ -28,7 +28,7 @@ export function CheckoutPage() {
   const hasItems = items.length > 0;
 
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = event.target;
 
@@ -38,11 +38,17 @@ export function CheckoutPage() {
     }));
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setSubmitError('');
     setIsSubmitting(true);
+
+    if (fulfillmentType === 'delivery' && !deliveryAddress.trim()) {
+      setSubmitError('Please return to the quote page and enter a delivery address.');
+      setIsSubmitting(false);
+      return;
+    }
 
     const payload = {
       customer: {
@@ -64,26 +70,26 @@ export function CheckoutPage() {
     };
 
     try {
-  const response = await fetch('/api/quotes', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
+      const response = await fetch('/api/quotes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
-  if (!response.ok) {
-    throw new Error('Failed to submit inquiry');
-  }
+      if (!response.ok) {
+        throw new Error('Failed to submit inquiry');
+      }
 
-  clearQuote();
-  navigate('/checkout/success');
-} catch (error) {
-  console.error(error);
-  setSubmitError('There was a problem submitting your inquiry. Please try again.');
-} finally {
-  setIsSubmitting(false);
-}
+      clearQuote();
+      navigate('/checkout/success');
+    } catch (error) {
+      console.error(error);
+      setSubmitError('There was a problem submitting your inquiry. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!hasItems) {

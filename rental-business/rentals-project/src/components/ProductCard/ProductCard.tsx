@@ -3,7 +3,22 @@ import { useQuote } from '../../context/QuoteContext';
 import { formatMoney } from '../../utils/money';
 import './ProductCard.css';
 
-function formatCategoryLabel(category) {
+type Product = {
+  id: string;
+  name: string;
+  category: string;
+  image: string;
+  shortDescription: string;
+  pricingLabel: string;
+  priceCents: number;
+  available: boolean;
+};
+
+type ProductCardProps = {
+  product: Product;
+};
+
+function formatCategoryLabel(category: string) {
   if (category === 'yard-games') {
     return 'Yard Games';
   }
@@ -11,7 +26,7 @@ function formatCategoryLabel(category) {
   return category.charAt(0).toUpperCase() + category.slice(1);
 }
 
-export function ProductCard({ product }) {
+export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useQuote();
 
   const isUnavailable = !product.available;

@@ -1,17 +1,68 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+  type Dispatch,
+  type SetStateAction
+} from 'react';
 
-const QuoteContext = createContext(null);
+type FulfillmentType = 'pickup' | 'delivery';
 
-export function QuoteProvider({ children }) {
-  const [items, setItems] = useState([]);
-  const [rentalDates, setRentalDates] = useState({
+type RentalDates = {
+  start: string;
+  end: string;
+};
+
+type QuoteItem = {
+  id: string | number;
+  name: string;
+  image: string;
+  pricingLabel: string;
+  priceCents: number;
+  quantity: number;
+};
+
+type Product = {
+  id: string | number;
+  name: string;
+  image: string;
+  pricingLabel: string;
+  priceCents: number;
+};
+
+type QuoteContextValue = {
+  items: QuoteItem[];
+  rentalDates: RentalDates;
+  fulfillmentType: FulfillmentType;
+  deliveryAddress: string;
+  addItem: (product: Product) => void;
+  removeItem: (productId: string | number) => void;
+  updateQuantity: (productId: string | number, nextQuantity: string | number) => void;
+  clearQuote: () => void;
+  setRentalDates: Dispatch<SetStateAction<RentalDates>>;
+  setFulfillmentType: Dispatch<SetStateAction<FulfillmentType>>;
+  setDeliveryAddress: Dispatch<SetStateAction<string>>;
+};
+
+type QuoteProviderProps = {
+  children: ReactNode;
+};
+
+const QuoteContext = createContext<QuoteContextValue | null>(null);
+
+export function QuoteProvider({ children }: QuoteProviderProps) {
+  const [items, setItems] = useState<QuoteItem[]>([]);
+  const [rentalDates, setRentalDates] = useState<RentalDates>({
     start: '',
     end: ''
   });
-  const [fulfillmentType, setFulfillmentType] = useState('pickup');
+  const [fulfillmentType, setFulfillmentType] =
+    useState<FulfillmentType>('pickup');
   const [deliveryAddress, setDeliveryAddress] = useState('');
 
-  function addItem(product) {
+  function addItem(product: Product) {
     setItems((currentItems) => {
       const existingItem = currentItems.find((item) => item.id === product.id);
 
@@ -33,13 +84,13 @@ export function QuoteProvider({ children }) {
     });
   }
 
-  function removeItem(productId) {
+  function removeItem(productId: string | number) {
     setItems((currentItems) =>
       currentItems.filter((item) => item.id !== productId)
     );
   }
 
-  function updateQuantity(productId, nextQuantity) {
+  function updateQuantity(productId: string | number, nextQuantity: string | number) {
     const parsedQuantity = Number(nextQuantity);
 
     if (!Number.isFinite(parsedQuantity) || parsedQuantity < 1) {
@@ -66,7 +117,7 @@ export function QuoteProvider({ children }) {
     setDeliveryAddress('');
   }
 
-  const value = useMemo(
+  const value = useMemo<QuoteContextValue>(
     () => ({
       items,
       rentalDates,
@@ -83,7 +134,11 @@ export function QuoteProvider({ children }) {
     [items, rentalDates, fulfillmentType, deliveryAddress]
   );
 
-  return <QuoteContext.Provider value={value}>{children}</QuoteContext.Provider>;
+  return (
+    <QuoteContext.Provider value={value}>
+      {children}
+    </QuoteContext.Provider>
+  );
 }
 
 export function useQuote() {

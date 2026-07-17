@@ -1,3 +1,4 @@
+import { Footer } from '../../components/Footer/Footer';
 import { Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { Header } from '../../components/Header/Header';
@@ -45,10 +46,12 @@ export function RentalsPage() {
       <main className="rentals-page">
         <section className="rentals-hero">
           <p className="rentals-eyebrow">Browse rentals</p>
-          <h1>Chairs, tables, games, concessions, and event rentals.</h1>
+          <h1>Chairs, Tables, Games, Concessions, and Event Rentals.</h1>
           <p>
-            Browse available rental items, review details, and add products to your quote before submitting your inquiry.
-          </p>
+  Browse available rentals, add items to your quote, and submit your inquiry
+  when you're ready. Start with chairs and tables, then add games,
+  concessions, and extras.
+</p>
         </section>
 
         <section className="rentals-filters" aria-label="Rental categories">
@@ -66,6 +69,10 @@ export function RentalsPage() {
           ))}
         </section>
 
+        <p className="rentals-results-count">
+  {visibleProducts.length} item{visibleProducts.length === 1 ? '' : 's'} available
+</p>
+
         <section className="rentals-grid">
           {visibleProducts.length > 0 ? (
             visibleProducts.map((product) => (
@@ -75,7 +82,8 @@ export function RentalsPage() {
             <div className="rentals-empty-state">
               <h2>No rentals available in this category right now.</h2>
               <p>
-                Try another category or continue to your quote to review the rental items you already selected.
+                Try another category or continue to your quote to review the items
+                you already selected.
               </p>
               <Link to="/quote" className="primary-button">
                 View Quote
@@ -84,6 +92,7 @@ export function RentalsPage() {
           )}
         </section>
       </main>
+      <Footer />
     </>
   );
 }
