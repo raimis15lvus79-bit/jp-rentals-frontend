@@ -11,7 +11,7 @@ type Product = {
   shortDescription: string;
   pricingLabel: string;
   priceCents: number;
-  available: boolean;
+  inventory: number;
 };
 
 type ProductCardProps = {
@@ -29,7 +29,7 @@ function formatCategoryLabel(category: string) {
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useQuote();
 
-  const isUnavailable = !product.available;
+  const isUnavailable = product.inventory <= 0;
 
   function handleAddToQuote() {
     if (isUnavailable) {
@@ -55,14 +55,6 @@ export function ProductCard({ product }: ProductCardProps) {
           alt={product.name}
           className="product-card__image"
         />
-
-        <span
-          className={`product-card__badge ${
-            isUnavailable ? 'unavailable' : 'available'
-          }`}
-        >
-          {isUnavailable ? 'Unavailable' : 'Available'}
-        </span>
       </div>
 
       <div className="product-card__content">
@@ -71,6 +63,10 @@ export function ProductCard({ product }: ProductCardProps) {
         </p>
 
         <h2 className="product-card__title">{product.name}</h2>
+
+        <p className="product-card__inventory">
+          Inventory: {product.inventory}
+        </p>
 
         <p className="product-card__description">{product.shortDescription}</p>
 

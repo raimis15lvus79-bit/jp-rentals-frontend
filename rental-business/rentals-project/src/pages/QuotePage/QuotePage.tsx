@@ -1,10 +1,16 @@
-import type { ChangeEvent } from 'react';
+import { useMemo, useState, type ChangeEvent } from 'react';
 import { Footer } from '../../components/Footer/Footer';
 import { Link, useNavigate } from 'react-router-dom';
 import { Header } from '../../components/Header/Header';
 import { useQuote } from '../../context/QuoteContext';
 import { formatMoney } from '../../utils/money';
 import './QuotePage.css';
+
+type QuoteErrors = {
+  start?: string;
+  end?: string;
+  deliveryAddress?: string;
+};
 
 export function QuotePage() {
   const navigate = useNavigate();
@@ -20,7 +26,13 @@ export function QuotePage() {
     setDeliveryAddress
   } = useQuote();
 
+  const [errors, setErrors] = useState<QuoteErrors>({});
+
   const hasItems = items.length > 0;
+
+  const totalQuantity = useMemo(() => {
+    return items.reduce((total, item) => total + item.quantity, 0);
+  }, [items]);
 
   function handleDateChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
@@ -29,27 +41,62 @@ export function QuotePage() {
       ...rentalDates,
       [name]: value
     });
+
+    setErrors((current) => ({
+      ...current,
+      [name]: undefined
+    }));
   }
 
   function handleFulfillmentChange(event: ChangeEvent<HTMLInputElement>) {
     setFulfillmentType(event.target.value as 'pickup' | 'delivery');
+
+    if (event.target.value === 'pickup') {
+      setErrors((current) => ({
+        ...current,
+        deliveryAddress: undefined
+      }));
+    }
+  }
+
+  function handleDeliveryAddressChange(event: ChangeEvent<HTMLTextAreaElement>) {
+    setDeliveryAddress(event.target.value);
+
+    setErrors((current) => ({
+      ...current,
+      deliveryAddress: undefined
+    }));
   }
 
   function handleContinue() {
     if (!hasItems) return;
 
-    if (!rentalDates.start || !rentalDates.end) {
-      alert('Please select your rental dates before continuing.');
-      return;
+    const nextErrors: QuoteErrors = {};
+
+    if (!rentalDates.start) {
+      nextErrors.start = 'Please select a start date.';
     }
 
-    if (rentalDates.start && rentalDates.end && rentalDates.end < rentalDates.start) {
-      alert('Please choose an end date that is the same as or after the start date.');
-      return;
+    if (!rentalDates.end) {
+      nextErrors.end = 'Please select an end date.';
+    }
+
+    if (
+      rentalDates.start &&
+      rentalDates.end &&
+      rentalDates.end < rentalDates.start
+    ) {
+      nextErrors.end = 'End date must be the same as or after the start date.';
     }
 
     if (fulfillmentType === 'delivery' && !deliveryAddress.trim()) {
-      alert('Please enter the delivery address for your quote.');
+      nextErrors.deliveryAddress =
+        'Please enter the full delivery address for your quote.';
+    }
+
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
@@ -140,7 +187,15 @@ export function QuotePage() {
                       name="start"
                       value={rentalDates.start}
                       onChange={handleDateChange}
+                      className={errors.start ? 'quote-input-error' : ''}
+                      aria-invalid={Boolean(errors.start)}
+                      aria-describedby={errors.start ? 'quote-start-error' : undefined}
                     />
+                    {errors.start && (
+                      <p id="quote-start-error" className="quote-field-error">
+                        {errors.start}
+                      </p>
+                    )}
                   </label>
 
                   <label>
@@ -150,7 +205,15 @@ export function QuotePage() {
                       name="end"
                       value={rentalDates.end}
                       onChange={handleDateChange}
+                      className={errors.end ? 'quote-input-error' : ''}
+                      aria-invalid={Boolean(errors.end)}
+                      aria-describedby={errors.end ? 'quote-end-error' : undefined}
                     />
+                    {errors.end && (
+                      <p id="quote-end-error" className="quote-field-error">
+                        {errors.end}
+                      </p>
+                    )}
                   </label>
                 </div>
 
@@ -186,9 +249,19 @@ export function QuotePage() {
                     <textarea
                       rows={4}
                       value={deliveryAddress}
-                      onChange={(event) => setDeliveryAddress(event.target.value)}
+                      onChange={handleDeliveryAddressChange}
+                      className={errors.deliveryAddress ? 'quote-input-error' : ''}
+                      aria-invalid={Boolean(errors.deliveryAddress)}
+                      aria-describedby={
+                        errors.deliveryAddress ? 'quote-delivery-error' : undefined
+                      }
                       placeholder="Enter the full delivery address for your quote."
                     />
+                    {errors.deliveryAddress && (
+                      <p id="quote-delivery-error" className="quote-field-error">
+                        {errors.deliveryAddress}
+                      </p>
+                    )}
                     <p className="quote-note">
                       A physical address is required for delivery quotes because delivery pricing is based on mileage.
                     </p>
@@ -200,9 +273,26 @@ export function QuotePage() {
             <aside className="quote-sidebar">
               <div className="quote-card">
                 <h2>Quote summary</h2>
-                <p>
-                  {items.length} rental item{items.length === 1 ? '' : 's'} selected
-                </p>
+
+                <ul className="quote-summary-list">
+                  <li>
+                    {items.length} rental item{items.length === 1 ? '' : 's'} selected
+                  </li>
+                  <li>
+                    Total quantity: {totalQuantity}
+                  </li>
+                  <li>
+                    Dates:{' '}
+                    {rentalDates.start && rentalDates.end
+                      ? `${rentalDates.start} to ${rentalDates.end}`
+                      : 'Not selected yet'}
+                  </li>
+                  <li>
+                    Fulfillment:{' '}
+                    {fulfillmentType === 'delivery' ? 'Delivery quote' : 'Pickup'}
+                  </li>
+                </ul>
+
                 <p>
                   Final pricing and availability will be confirmed after your inquiry is reviewed.
                 </p>

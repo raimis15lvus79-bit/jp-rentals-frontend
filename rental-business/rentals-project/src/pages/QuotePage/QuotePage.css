@@ -336,3 +336,27 @@
     max-width: 100%;
   }
 }
+
+.quote-field-error {
+  margin: 6px 0 0;
+  color: #b91c1c;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.quote-input-error {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12) !important;
+}
+
+.quote-summary-list {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding-left: 18px;
+}
+
+.quote-summary-list li {
+  line-height: 1.6;
+}

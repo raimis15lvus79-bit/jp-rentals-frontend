@@ -10,7 +10,7 @@ export const sampleProducts = [
     shortDescription: 'Clean white folding chairs for weddings, parties, and formal events.',
     description:
       'A popular seating option for graduations, showers, backyard parties, and upscale events.',
-    available: true,
+    inventory: 120,
     featured: true
   },
   {
@@ -24,7 +24,7 @@ export const sampleProducts = [
     shortDescription: 'Reliable 6 foot table rental for food, gifts, seating, and displays.',
     description:
       'A dependable event table for graduations, parties, showers, family gatherings, and business events.',
-    available: true,
+    inventory: 45,
     featured: true
   },
   {
@@ -38,7 +38,7 @@ export const sampleProducts = [
     shortDescription: 'Simple table setup for rummage sales, vendor booths, and temporary displays.',
     description:
       'A practical rental option for sales, vendor events, community setups, and extra display space.',
-    available: true,
+    inventory: 15,
     featured: false
   },
   {
@@ -52,7 +52,7 @@ export const sampleProducts = [
     shortDescription: 'Featured mini golf rental for parties, schools, churches, and company events.',
     description:
       'A premium event attraction that works well for larger parties, school events, church functions, and community gatherings.',
-    available: true,
+    inventory: 2,
     featured: true
   },
   {
@@ -66,7 +66,7 @@ export const sampleProducts = [
     shortDescription: 'Includes blasters, darts, inflatables, barricade, goggles, and inflator.',
     description:
       'Includes 25 blasters, 200 bullets, 4 inflatables, 1 barricade, safety goggles, and an inflator for a full event package.',
-    available: true,
+    inventory: 2,
     featured: false
   },
   {
@@ -80,7 +80,7 @@ export const sampleProducts = [
     shortDescription: 'Classic oversized yard game that works well for casual outdoor events.',
     description:
       'A simple add-on rental for backyard parties, graduations, and family gatherings.',
-    available: true,
+    inventory: 2,
     featured: false
   },
   {
@@ -94,7 +94,7 @@ export const sampleProducts = [
     shortDescription: 'Large-format party game for guests of all ages.',
     description:
       'A fun and easy social game that works for outdoor events, parties, and school functions.',
-    available: true,
+    inventory: 4,
     featured: false
   },
   {
@@ -108,7 +108,7 @@ export const sampleProducts = [
     shortDescription: 'Easy party game for kids, families, and community events.',
     description:
       'A family-friendly game option for birthday parties, church events, school functions, and local gatherings.',
-    available: true,
+    inventory: 8,
     featured: false
   },
   {
@@ -122,7 +122,7 @@ export const sampleProducts = [
     shortDescription: 'Compact popcorn machine rental for smaller events and parties.',
     description:
       'A fun concession add-on for birthdays, school functions, and smaller backyard events.',
-    available: true,
+    inventory: 1,
     featured: false
   },
   {
@@ -136,7 +136,7 @@ export const sampleProducts = [
     shortDescription: 'Larger popcorn machine rental for bigger guest counts.',
     description:
       'A strong concessions option for larger events that need higher serving volume.',
-    available: true,
+    inventory: 1,
     featured: false
   },
   {
@@ -150,7 +150,7 @@ export const sampleProducts = [
     shortDescription: 'Popular concession machine for kids parties and fun event setups.',
     description:
       'A popular add-on for birthdays, school events, family gatherings, and party packages.',
-    available: true,
+    inventory: 1,
     featured: false
   }
 ];

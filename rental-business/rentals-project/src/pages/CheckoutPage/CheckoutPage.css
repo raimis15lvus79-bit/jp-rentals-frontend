@@ -221,3 +221,16 @@
     justify-content: center;
   }
 }
+
+.checkout-field-error {
+  margin: 6px 0 0;
+  color: #b91c1c;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.checkout-input-error {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12) !important;
+}

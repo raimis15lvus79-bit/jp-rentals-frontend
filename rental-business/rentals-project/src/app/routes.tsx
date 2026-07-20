@@ -5,6 +5,7 @@ import { ProductDetailsPage } from '../pages/ProductDetailsPage/ProductDetailsPa
 import { QuotePage } from '../pages/QuotePage/QuotePage';
 import { CheckoutPage } from '../pages/CheckoutPage/CheckoutPage';
 import { CheckoutSuccessPage } from '../pages/CheckoutSuccessPage/CheckoutSuccessPage';
+import { NotFoundPage } from '../pages/NotFoundPage/NotFoundPage';
 
 export default function AppRoutes() {
   return (
@@ -15,6 +16,7 @@ export default function AppRoutes() {
       <Route path="/quote" element={<QuotePage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

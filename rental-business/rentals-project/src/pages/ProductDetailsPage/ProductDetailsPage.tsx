@@ -5,7 +5,7 @@ import { sampleProducts } from '../../data/sampleProducts';
 import { formatMoney } from '../../utils/money';
 import './ProductDetailsPage.css';
 
-function formatCategoryLabel(category) {
+function formatCategoryLabel(category: string) {
   if (category === 'yard-games') {
     return 'Yard Games';
   }
@@ -17,9 +17,9 @@ export function ProductDetailsPage() {
   const { id } = useParams();
   const { addItem } = useQuote();
 
-  const product = sampleProducts.find((item) => item.id === id);
+  const foundProduct = sampleProducts.find((item) => item.id === id);
 
-  if (!product) {
+  if (!foundProduct) {
     return (
       <>
         <Header />
@@ -37,7 +37,8 @@ export function ProductDetailsPage() {
     );
   }
 
-  const isUnavailable = !product.available;
+  const product = foundProduct;
+  const isUnavailable = product.inventory <= 0;
 
   function renderPricingText() {
     if (product.pricingLabel === 'Request pricing') {
@@ -58,7 +59,6 @@ export function ProductDetailsPage() {
   return (
     <>
       <Header />
-
       <main className="product-details-page">
         <section className="product-details-layout">
           <div className="product-details-image-wrap">
@@ -76,12 +76,8 @@ export function ProductDetailsPage() {
 
             <h1>{product.name}</h1>
 
-            <p
-              className={`product-details-status ${
-                isUnavailable ? 'unavailable' : 'available'
-              }`}
-            >
-              {isUnavailable ? 'Currently unavailable' : 'Available for inquiry'}
+            <p className="product-details-inventory">
+              Inventory: {product.inventory}
             </p>
 
             <p className="product-details-price">{renderPricingText()}</p>

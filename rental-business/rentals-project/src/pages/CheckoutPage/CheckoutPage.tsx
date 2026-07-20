@@ -1,8 +1,18 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Header } from '../../components/Header/Header';
 import { useQuote } from '../../context/QuoteContext';
 import './CheckoutPage.css';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type CheckoutErrors = {
+  fullName?: string;
+  email?: string;
+  startDate?: string;
+  endDate?: string;
+  deliveryAddress?: string;
+};
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -22,10 +32,15 @@ export function CheckoutPage() {
     notes: ''
   });
 
+  const [errors, setErrors] = useState<CheckoutErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
   const hasItems = items.length > 0;
+
+  const totalQuantity = useMemo(() => {
+    return items.reduce((total, item) => total + item.quantity, 0);
+  }, [items]);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -36,24 +51,59 @@ export function CheckoutPage() {
       ...currentData,
       [name]: value
     }));
+
+    if (name === 'fullName' || name === 'email') {
+      setErrors((current) => ({
+        ...current,
+        [name]: undefined
+      }));
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const nextErrors: CheckoutErrors = {};
     setSubmitError('');
-    setIsSubmitting(true);
+
+    if (!formData.fullName.trim()) {
+      nextErrors.fullName = 'Please enter your full name.';
+    }
+
+    const emailValue = formData.email.trim();
+
+    if (!emailValue) {
+    nextErrors.email = 'Please enter your email address.';
+    } else if (!EMAIL_REGEX.test(emailValue)) {
+    nextErrors.email = 'Please enter a valid email address, like name@example.com.';
+    }
+
+    if (!rentalDates.start) {
+      nextErrors.startDate = 'Please return to the quote page and choose a start date.';
+    }
+
+    if (!rentalDates.end) {
+      nextErrors.endDate = 'Please return to the quote page and choose an end date.';
+    }
 
     if (fulfillmentType === 'delivery' && !deliveryAddress.trim()) {
-      setSubmitError('Please return to the quote page and enter a delivery address.');
-      setIsSubmitting(false);
+      nextErrors.deliveryAddress =
+        'Please return to the quote page and enter a delivery address.';
+    }
+
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      setSubmitError('Please fix the highlighted fields and details before submitting.');
       return;
     }
 
+    setIsSubmitting(true);
+
     const payload = {
       customer: {
-        fullName: formData.fullName,
-        email: formData.email,
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
         eventType: formData.eventType,
         guestCount: formData.guestCount,
         notes: formData.notes
@@ -124,7 +174,7 @@ export function CheckoutPage() {
         </section>
 
         <section className="checkout-layout">
-          <form className="checkout-form-card" onSubmit={handleSubmit}>
+          <form className="checkout-form-card" onSubmit={handleSubmit} noValidate>
             <h2>Contact details</h2>
 
             <div className="checkout-form-grid">
@@ -135,8 +185,15 @@ export function CheckoutPage() {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  required
+                  className={errors.fullName ? 'checkout-input-error' : ''}
+                  aria-invalid={Boolean(errors.fullName)}
+                  aria-describedby={errors.fullName ? 'checkout-fullName-error' : undefined}
                 />
+                {errors.fullName && (
+                  <p id="checkout-fullName-error" className="checkout-field-error">
+                    {errors.fullName}
+                  </p>
+                )}
               </label>
 
               <label>
@@ -146,8 +203,15 @@ export function CheckoutPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  required
+                  className={errors.email ? 'checkout-input-error' : ''}
+                  aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? 'checkout-email-error' : undefined}
                 />
+                {errors.email && (
+                  <p id="checkout-email-error" className="checkout-field-error">
+                    {errors.email}
+                  </p>
+                )}
               </label>
 
               <label>
@@ -185,8 +249,18 @@ export function CheckoutPage() {
             </label>
 
             {submitError ? (
-              <p className="checkout-error-message">{submitError}</p>
+              <p className="checkout-error-message" role="alert">
+                {submitError}
+              </p>
             ) : null}
+
+            {(errors.startDate || errors.endDate || errors.deliveryAddress) && (
+              <div className="checkout-error-message" role="alert">
+                {errors.startDate && <p>{errors.startDate}</p>}
+                {errors.endDate && <p>{errors.endDate}</p>}
+                {errors.deliveryAddress && <p>{errors.deliveryAddress}</p>}
+              </div>
+            )}
 
             <div className="checkout-actions">
               <button
@@ -217,6 +291,13 @@ export function CheckoutPage() {
             <div className="checkout-summary-block">
               <h3>Fulfillment</h3>
               <p>{fulfillmentType === 'delivery' ? 'Quote for delivery' : 'Pickup'}</p>
+            </div>
+
+            <div className="checkout-summary-block">
+              <h3>Totals</h3>
+              <p>
+                {items.length} rental item{items.length === 1 ? '' : 's'} · Total quantity: {totalQuantity}
+              </p>
             </div>
 
             {fulfillmentType === 'delivery' && (

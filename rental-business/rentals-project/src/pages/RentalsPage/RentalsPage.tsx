@@ -37,7 +37,7 @@ export function RentalsPage() {
     });
   }, [selectedCategory]);
 
-  const visibleProducts = filteredProducts.filter((product) => product.available);
+  const visibleProducts = filteredProducts;
 
   return (
     <>

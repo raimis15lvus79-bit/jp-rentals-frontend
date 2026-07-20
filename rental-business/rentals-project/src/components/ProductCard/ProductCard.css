@@ -41,28 +41,6 @@
   background: #f2f2f2;
 }
 
-.product-card__badge {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  backdrop-filter: blur(6px);
-}
-
-.product-card__badge.available {
-  background: rgba(220, 252, 231, 0.96);
-  color: #166534;
-}
-
-.product-card__badge.unavailable {
-  background: rgba(254, 226, 226, 0.96);
-  color: #b91c1c;
-}
-
 .product-card__content {
   display: flex;
   flex-direction: column;

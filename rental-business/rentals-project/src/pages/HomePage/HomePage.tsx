@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Header } from '../../components/Header/Header';
 import './HomePage.css';
 
+
 export function HomePage() {
   return (
     <>
