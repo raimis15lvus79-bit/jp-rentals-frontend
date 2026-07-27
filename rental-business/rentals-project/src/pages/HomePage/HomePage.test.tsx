@@ -12,13 +12,15 @@ describe('HomePage component', () => {
     );
 
     expect(
-      screen.getByText(
-        'Chairs, Tables, Games, Concessions, and Party Rentals for Northeast Wisconsin.'
-      )
+      screen.getByRole('heading', {
+        name: /chairs, tables, games, and concessions for backyard parties/i,
+      })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(/Serving Kaukauna, the Fox Valley, and Green Bay/i)
+      screen.getByText(
+        /JP Rentals and Events serves Kaukauna, the Fox Valley, and Green Bay/i
+      )
     ).toBeInTheDocument();
 
     expect(screen.getByText('Popular rentals')).toBeInTheDocument();
@@ -32,8 +34,8 @@ describe('HomePage component', () => {
     ).toBeGreaterThan(0);
 
     expect(
-  screen.getAllByRole('link', { name: /Browse Rentals/i }).length
-).toBeGreaterThan(0);
+      screen.getAllByRole('link', { name: /Browse Rentals/i }).length
+    ).toBeGreaterThan(0);
 
     expect(
       screen.getByRole('link', { name: /Start Your Quote/i })

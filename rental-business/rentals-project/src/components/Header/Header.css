@@ -17,10 +17,32 @@
 }
 
 .site-header__brand {
-  color: #111111;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #0f766e;
+  border: 1px solid #a7f3d0;
   text-decoration: none;
-  font-size: 20px;
   font-weight: 700;
+}
+
+.site-header__brand:hover,
+.site-header__brand:focus-visible {
+  background: #60d0c9;
+  box-shadow: 0 8px 22px rgba(15, 118, 110, 0.24);
+  transform: translateY(-1px);
+}
+
+.site-header__brand:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.18);
+}
+
+.site-header__brand:focus-visible {
+  outline: 3px solid rgba(15, 118, 110, 0.28);
+  outline-offset: 3px;
 }
 
 .site-header__nav {

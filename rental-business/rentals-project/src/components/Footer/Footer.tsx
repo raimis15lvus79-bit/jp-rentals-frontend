@@ -11,17 +11,24 @@ export function Footer() {
             Chairs, tables, games, concessions, and party rentals for Kaukauna,
             the Fox Valley, and Green Bay.
           </p>
+          <p className="site-footer__service-area">Serving Northeast Wisconsin</p>
         </div>
 
-        <nav className="site-footer__links" aria-label="Footer navigation">
-          <Link to="/rentals">Browse Rentals</Link>
-          <Link to="/quote">Request Pricing</Link>
-        </nav>
-
-        <div className="site-footer__contact">
-          <p>Serving Northeast Wisconsin</p>
-          <a href="mailto:Jacobpaske08@gmail.com">Jacobpaske08@gmail.com</a>
+        <div className="site-footer__cta">
+          <Link to="/rentals" className="footer-btn">
+            Browse Rentals
+          </Link>
+          <Link to="/quote" className="footer-btn footer-btn--primary">
+            Request Pricing
+          </Link>
+          <a href="mailto:Jacobpaske08@gmail.com" className="footer-btn">
+            Jacobpaske08@gmail.com
+          </a>
         </div>
+      </div>
+
+      <div className="site-footer__bottom">
+        <p>© 2026 JP Rentals and Events. All rights reserved.</p>
       </div>
     </footer>
   );

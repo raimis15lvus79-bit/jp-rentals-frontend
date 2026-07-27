@@ -1,93 +1,54 @@
-import { useCallback, useMemo, useState } from 'react';
-import {
-  QuoteContext,
-  type FulfillmentType,
-  type QuoteItem,
-  type QuoteProviderProps,
-  type QuoteContextValue,
-  type RentalDates,
-} from './QuoteContext';
+import { createContext, useContext } from 'react';
 
-const defaultRentalDates: RentalDates = {
-  startDate: '',
-  endDate: '',
+export type QuoteItem = {
+  id: string;
+  name: string;
+  image: string;
+  priceCents: number;
+  pricingLabel: string;
+  quantity: number;
 };
 
-export function QuoteProvider({ children }: QuoteProviderProps) {
-  const [items, setItems] = useState<QuoteItem[]>([]);
-  const [rentalDates, setRentalDates] = useState<RentalDates>(defaultRentalDates);
-  const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>('pickup');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+export type RentalDates = {
+  start: string;
+  end: string;
+};
 
-  const addItem = useCallback((item: Omit<QuoteItem, 'quantity'>) => {
-    setItems((currentItems) => {
-      const existingItem = currentItems.find((currentItem) => currentItem.id === item.id);
+export type FulfillmentType = 'pickup' | 'delivery';
 
-      if (existingItem) {
-        return currentItems.map((currentItem) =>
-          currentItem.id === item.id
-            ? { ...currentItem, quantity: currentItem.quantity + 1 }
-            : currentItem
-        );
-      }
+export type DeliveryAddressDetails = {
+  formattedAddress: string;
+  placeId: string;
+  lat: number | null;
+  lng: number | null;
+};
 
-      return [...currentItems, { ...item, quantity: 1 }];
-    });
-  }, []);
+type QuoteContextValue = {
+  items: QuoteItem[];
+  rentalDates: RentalDates;
+  fulfillmentType: FulfillmentType;
+  deliveryAddress: string;
+  deliveryAddressDetails: DeliveryAddressDetails | null;
+  addItem: (item: Omit<QuoteItem, 'quantity'>) => void;
+  removeItem: (itemId: string) => void;
+  updateQuantity: (itemId: string, quantity: number) => void;
+  setRentalDates: (dates: RentalDates) => void;
+  setFulfillmentType: (type: FulfillmentType) => void;
+  setDeliveryAddress: (address: string) => void;
+  setDeliveryAddressDetails: (details: DeliveryAddressDetails | null) => void;
+  clearQuote: () => void;
+};
 
-  const removeItem = useCallback((id: string) => {
-    setItems((currentItems) => currentItems.filter((item) => item.id !== id));
-  }, []);
+const QuoteContext = createContext<QuoteContextValue | undefined>(undefined);
 
-  const updateQuantity = useCallback((id: string, quantity: number) => {
-    if (quantity <= 0) {
-      setItems((currentItems) => currentItems.filter((item) => item.id !== id));
-      return;
-    }
+export function useQuote() {
+  const context = useContext(QuoteContext);
 
-    setItems((currentItems) =>
-      currentItems.map((item) =>
-        item.id === id ? { ...item, quantity } : item
-      )
-    );
-  }, []);
+  if (!context) {
+    throw new Error('useQuote must be used within a QuoteProvider');
+  }
 
-  const clearQuote = useCallback(() => {
-    setItems([]);
-    setRentalDates(defaultRentalDates);
-    setFulfillmentType('pickup');
-    setDeliveryAddress('');
-  }, []);
-
-  const value = useMemo<QuoteContextValue>(
-    () => ({
-      items,
-      rentalDates,
-      fulfillmentType,
-      deliveryAddress,
-      addItem,
-      removeItem,
-      updateQuantity,
-      clearQuote,
-      setRentalDates,
-      setFulfillmentType,
-      setDeliveryAddress,
-    }),
-    [
-      items,
-      rentalDates,
-      fulfillmentType,
-      deliveryAddress,
-      addItem,
-      removeItem,
-      updateQuantity,
-      clearQuote,
-    ]
-  );
-
-  return (
-    <QuoteContext.Provider value={value}>
-      {children}
-    </QuoteContext.Provider>
-  );
+  return context;
 }
+
+export { QuoteContext };

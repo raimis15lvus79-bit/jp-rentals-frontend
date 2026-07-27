@@ -98,3 +98,16 @@
     justify-content: center;
   }
 }
+
+.checkout-success-steps {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.checkout-success-steps li + li {
+  margin-top: 0.5rem;
+}
+
+.checkout-success-note {
+  margin-top: 1.5rem;
+}

@@ -11,29 +11,38 @@ export function CheckoutSuccessPage() {
       <main className="checkout-success-page">
         <section className="checkout-success-card">
           <p className="checkout-success-eyebrow">Inquiry submitted</p>
-          <h1>Your rental inquiry was submitted successfully.</h1>
+          <h1>Your rental inquiry has been received.</h1>
           <p className="checkout-success-lead">
-            We’ve received your request and will review pricing, availability,
-            delivery or pickup details, and any event notes you included.
+            Thanks for sending your request. We’ll review your rental items,
+            event dates, delivery or pickup details, and any notes you included.
           </p>
 
           <div className="checkout-success-details">
             <div className="checkout-success-block">
               <h2>What happens next</h2>
-              <p>
-                We’ll follow up by email with availability confirmation, pricing,
-                and any next steps needed to finalize your rental.
-              </p>
+              <ol className="checkout-success-steps">
+                <li>We review your requested rentals, dates, and event details.</li>
+                <li>We confirm availability, pricing, and delivery or pickup options.</li>
+                <li>We follow up by email with the next steps to finalize your rental.</li>
+              </ol>
             </div>
 
             <div className="checkout-success-block">
-              <h2>Before your event</h2>
+              <h2>Expected follow-up</h2>
               <p>
-                If delivery is needed, your final quote will include mileage-based
-                delivery details once the address is reviewed.
+                You should receive a follow-up email soon with pricing,
+                availability, and any details needed to move forward.
+              </p>
+              <p>
+                If delivery is needed, your final quote will include
+                mileage-based delivery details after the address is reviewed.
               </p>
             </div>
           </div>
+
+          <p className="checkout-success-note">
+            Be sure to check your email for the next update about your rental request.
+          </p>
 
           <div className="checkout-success-actions">
             <Link to="/rentals" className="primary-button">

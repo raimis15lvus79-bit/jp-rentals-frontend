@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Header } from '../../components/Header/Header';
+import { AddressAutocomplete } from '../../components/AddressAutocomplete/AddressAutocomplete';
 import { useQuote } from '../../context/QuoteContext';
 import './CheckoutPage.css';
 
@@ -9,6 +10,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 type CheckoutErrors = {
   fullName?: string;
   email?: string;
+  eventType?: string;
   startDate?: string;
   endDate?: string;
   deliveryAddress?: string;
@@ -21,7 +23,10 @@ export function CheckoutPage() {
     rentalDates,
     fulfillmentType,
     deliveryAddress,
-    clearQuote
+    deliveryAddressDetails,
+    setDeliveryAddress,
+    setDeliveryAddressDetails,
+    clearQuote,
   } = useQuote();
 
   const [formData, setFormData] = useState({
@@ -29,7 +34,7 @@ export function CheckoutPage() {
     email: '',
     eventType: '',
     guestCount: '',
-    notes: ''
+    notes: '',
   });
 
   const [errors, setErrors] = useState<CheckoutErrors>({});
@@ -42,21 +47,30 @@ export function CheckoutPage() {
     return items.reduce((total, item) => total + item.quantity, 0);
   }, [items]);
 
+  const hasDetailErrors =
+    Boolean(errors.startDate) ||
+    Boolean(errors.endDate) ||
+    Boolean(errors.deliveryAddress);
+
   const handleChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = event.target;
 
     setFormData((currentData) => ({
       ...currentData,
-      [name]: value
+      [name]: value,
     }));
 
-    if (name === 'fullName' || name === 'email') {
+    if (name === 'fullName' || name === 'email' || name === 'eventType') {
       setErrors((current) => ({
         ...current,
-        [name]: undefined
+        [name]: undefined,
       }));
+    }
+
+    if (submitError) {
+      setSubmitError('');
     }
   };
 
@@ -73,9 +87,13 @@ export function CheckoutPage() {
     const emailValue = formData.email.trim();
 
     if (!emailValue) {
-    nextErrors.email = 'Please enter your email address.';
+      nextErrors.email = 'Please enter your email address.';
     } else if (!EMAIL_REGEX.test(emailValue)) {
-    nextErrors.email = 'Please enter a valid email address, like name@example.com.';
+      nextErrors.email = 'Please enter a valid email address.';
+    }
+
+    if (!formData.eventType) {
+      nextErrors.eventType = 'Please select an event type.';
     }
 
     if (!rentalDates.start) {
@@ -87,8 +105,7 @@ export function CheckoutPage() {
     }
 
     if (fulfillmentType === 'delivery' && !deliveryAddress.trim()) {
-      nextErrors.deliveryAddress =
-        'Please return to the quote page and enter a delivery address.';
+      nextErrors.deliveryAddress = 'Please enter a delivery address.';
     }
 
     setErrors(nextErrors);
@@ -105,27 +122,28 @@ export function CheckoutPage() {
         fullName: formData.fullName.trim(),
         email: formData.email.trim(),
         eventType: formData.eventType,
-        guestCount: formData.guestCount,
-        notes: formData.notes
+        guestCount: formData.guestCount.trim(),
+        notes: formData.notes.trim(),
       },
       quote: {
         items,
         rentalDates: {
           start: rentalDates.start,
-          end: rentalDates.end
+          end: rentalDates.end,
         },
         fulfillmentType,
-        deliveryAddress
-      }
+        deliveryAddress: deliveryAddress.trim(),
+        deliveryAddressDetails,
+      },
     };
 
     try {
       const response = await fetch('/api/quotes', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -178,11 +196,13 @@ export function CheckoutPage() {
             <h2>Contact details</h2>
 
             <div className="checkout-form-grid">
-              <label>
-                Full name
+              <div className="checkout-field">
+                <label htmlFor="fullName">Full name</label>
                 <input
+                  id="fullName"
                   type="text"
                   name="fullName"
+                  autoComplete="name"
                   value={formData.fullName}
                   onChange={handleChange}
                   className={errors.fullName ? 'checkout-input-error' : ''}
@@ -194,13 +214,16 @@ export function CheckoutPage() {
                     {errors.fullName}
                   </p>
                 )}
-              </label>
+              </div>
 
-              <label>
-                Email address
+              <div className="checkout-field">
+                <label htmlFor="email">Email address</label>
                 <input
+                  id="email"
                   type="email"
                   name="email"
+                  autoComplete="email"
+                  inputMode="email"
                   value={formData.email}
                   onChange={handleChange}
                   className={errors.email ? 'checkout-input-error' : ''}
@@ -212,49 +235,102 @@ export function CheckoutPage() {
                     {errors.email}
                   </p>
                 )}
-              </label>
+              </div>
+            </div>
 
-              <label>
-                Event type
-                <input
-                  type="text"
+            <h2>Event details</h2>
+
+            <div className="checkout-form-grid">
+              <div className="checkout-field">
+                <label htmlFor="eventType">Event type</label>
+                <select
+                  id="eventType"
                   name="eventType"
                   value={formData.eventType}
                   onChange={handleChange}
-                  placeholder="Birthday party, wedding, graduation, etc."
-                />
-              </label>
+                  className={errors.eventType ? 'checkout-input-error' : ''}
+                  aria-invalid={Boolean(errors.eventType)}
+                  aria-describedby={
+                    errors.eventType
+                      ? 'checkout-eventType-help checkout-eventType-error'
+                      : 'checkout-eventType-help'
+                  }
+                >
+                  <option value="">Select event type</option>
+                  <option value="birthday-party">Birthday party</option>
+                  <option value="graduation-party">Graduation party</option>
+                  <option value="rummage-sale">Rummage sale</option>
+                  <option value="family-gathering">Family gathering</option>
+                  <option value="school-event">School event</option>
+                  <option value="community-event">Community event</option>
+                  <option value="other">Other</option>
+                </select>
+                <p id="checkout-eventType-help" className="checkout-field-help">
+                  Choose the option that best matches the event for this rental.
+                </p>
+                {errors.eventType && (
+                  <p id="checkout-eventType-error" className="checkout-field-error">
+                    {errors.eventType}
+                  </p>
+                )}
+              </div>
 
-              <label>
-                Estimated guest count
+              <div className="checkout-field">
+                <label htmlFor="guestCount">
+                  Estimated guest count <span>(optional)</span>
+                </label>
                 <input
+                  id="guestCount"
                   type="number"
                   name="guestCount"
                   min="1"
+                  inputMode="numeric"
                   value={formData.guestCount}
                   onChange={handleChange}
+                  aria-describedby="checkout-guestCount-help"
                 />
-              </label>
+                <p
+                  id="checkout-guestCount-help"
+                  className="checkout-field-help checkout-field-help-placeholder"
+                >
+                  &nbsp;
+                </p>
+              </div>
             </div>
 
-            <label className="checkout-notes-field">
-              Notes
-              <textarea
-                name="notes"
-                rows={5}
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Share any setup notes, event timing, or extra details."
-              />
+            {fulfillmentType === 'delivery' && (
+              <div className="checkout-field">
+                <label htmlFor="deliveryAddress">Delivery address</label>
+                <AddressAutocomplete
+                  value={deliveryAddress}
+                  onChange={setDeliveryAddress}
+                  onSelectAddress={setDeliveryAddressDetails}
+                  error={errors.deliveryAddress}
+                  helpText="Enter the delivery location, then choose a suggested address if available."
+                  placeholder="Enter delivery address"
+                />
+              </div>
+            )}
+
+            <label className="checkout-notes-field" htmlFor="notes">
+              Notes <span>(optional)</span>
             </label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows={5}
+              value={formData.notes}
+              onChange={handleChange}
+              placeholder="Share any location notes, event timing, or extra details."
+            />
 
             {submitError ? (
-              <p className="checkout-error-message" role="alert">
-                {submitError}
-              </p>
+              <div className="checkout-error-message" role="alert">
+                <p>{submitError}</p>
+              </div>
             ) : null}
 
-            {(errors.startDate || errors.endDate || errors.deliveryAddress) && (
+            {hasDetailErrors && (
               <div className="checkout-error-message" role="alert">
                 {errors.startDate && <p>{errors.startDate}</p>}
                 {errors.endDate && <p>{errors.endDate}</p>}
@@ -267,8 +343,9 @@ export function CheckoutPage() {
                 type="submit"
                 className="primary-button"
                 disabled={isSubmitting}
+                aria-busy={isSubmitting}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Inquiry'}
+                {isSubmitting ? 'Submitting inquiry...' : 'Submit Inquiry'}
               </button>
 
               <Link to="/quote" className="secondary-button">
@@ -283,20 +360,20 @@ export function CheckoutPage() {
             <div className="checkout-summary-block">
               <h3>Rental dates</h3>
               <p>
-                {rentalDates.start || 'Not selected'} to{' '}
-                {rentalDates.end || 'Not selected'}
+                {rentalDates.start || 'Not selected'} to {rentalDates.end || 'Not selected'}
               </p>
             </div>
 
             <div className="checkout-summary-block">
               <h3>Fulfillment</h3>
-              <p>{fulfillmentType === 'delivery' ? 'Quote for delivery' : 'Pickup'}</p>
+              <p>{fulfillmentType === 'delivery' ? 'Delivery quote requested' : 'Customer pickup'}</p>
             </div>
 
             <div className="checkout-summary-block">
-              <h3>Totals</h3>
+              <h3>Items</h3>
               <p>
-                {items.length} rental item{items.length === 1 ? '' : 's'} · Total quantity: {totalQuantity}
+                {items.length} item{items.length === 1 ? '' : 's'} selected · {totalQuantity} total
+                piece{totalQuantity === 1 ? '' : 's'}
               </p>
             </div>
 
@@ -319,8 +396,7 @@ export function CheckoutPage() {
             </div>
 
             <p className="checkout-note">
-              After submission, you can review the request, send pricing, and
-              complete the contract by email.
+              After you submit, pricing, availability, and contract details will be confirmed by email.
             </p>
           </aside>
         </section>

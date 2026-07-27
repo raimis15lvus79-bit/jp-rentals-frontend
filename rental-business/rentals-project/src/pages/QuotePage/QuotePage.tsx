@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Header } from '../../components/Header/Header';
 import { useQuote } from '../../context/QuoteContext';
 import { formatMoney } from '../../utils/money';
+import { AddressAutocomplete } from '../../components/AddressAutocomplete/AddressAutocomplete';
 import './QuotePage.css';
 
 type QuoteErrors = {
@@ -19,11 +20,13 @@ export function QuotePage() {
     rentalDates,
     fulfillmentType,
     deliveryAddress,
+    deliveryAddressDetails,
     removeItem,
     updateQuantity,
     setRentalDates,
     setFulfillmentType,
-    setDeliveryAddress
+    setDeliveryAddress,
+    setDeliveryAddressDetails,
   } = useQuote();
 
   const [errors, setErrors] = useState<QuoteErrors>({});
@@ -39,33 +42,26 @@ export function QuotePage() {
 
     setRentalDates({
       ...rentalDates,
-      [name]: value
+      [name]: value,
     });
 
     setErrors((current) => ({
       ...current,
-      [name]: undefined
+      [name]: undefined,
     }));
   }
 
   function handleFulfillmentChange(event: ChangeEvent<HTMLInputElement>) {
-    setFulfillmentType(event.target.value as 'pickup' | 'delivery');
+    const nextType = event.target.value as 'pickup' | 'delivery';
 
-    if (event.target.value === 'pickup') {
+    setFulfillmentType(nextType);
+
+    if (nextType === 'pickup') {
       setErrors((current) => ({
         ...current,
-        deliveryAddress: undefined
+        deliveryAddress: undefined,
       }));
     }
-  }
-
-  function handleDeliveryAddressChange(event: ChangeEvent<HTMLTextAreaElement>) {
-    setDeliveryAddress(event.target.value);
-
-    setErrors((current) => ({
-      ...current,
-      deliveryAddress: undefined
-    }));
   }
 
   function handleContinue() {
@@ -89,9 +85,13 @@ export function QuotePage() {
       nextErrors.end = 'End date must be the same as or after the start date.';
     }
 
-    if (fulfillmentType === 'delivery' && !deliveryAddress.trim()) {
-      nextErrors.deliveryAddress =
-        'Please enter the full delivery address for your quote.';
+    if (fulfillmentType === 'delivery') {
+      if (!deliveryAddress.trim()) {
+        nextErrors.deliveryAddress = 'Please enter a delivery address.';
+      } else if (!deliveryAddressDetails?.placeId) {
+        nextErrors.deliveryAddress =
+          'Please choose a valid delivery address from the Google suggestions.';
+      }
     }
 
     setErrors(nextErrors);
@@ -109,10 +109,12 @@ export function QuotePage() {
 
       <main className="quote-page">
         <section className="quote-header">
-          <p className="quote-eyebrow">Your quote</p>
-          <h1>Review your rentals and event details.</h1>
+          <p className="quote-eyebrow">Request pricing</p>
+          <h1>Review your rentals and rental details.</h1>
           <p>
-            Confirm your items, choose pickup or delivery, and continue to submit your request.
+            Confirm your rental items, choose pickup or delivery, and continue to
+            submit your request. We’ll review availability and follow up with pricing
+            and next steps.
           </p>
         </section>
 
@@ -132,6 +134,22 @@ export function QuotePage() {
               <div className="quote-card">
                 <h2>Rental items</h2>
 
+                <div className="quote-mobile-bar">
+                  <div className="quote-mobile-bar__summary">
+                    <span>{items.length} item{items.length === 1 ? '' : 's'}</span>
+                    <span>{totalQuantity} total</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="primary-button quote-mobile-bar__button"
+                    aria-label="Continue to Checkout from mobile summary"
+                    onClick={handleContinue}
+                  >
+                    Continue
+                  </button>
+                </div>
+
                 <div className="quote-items">
                   {items.map((item) => (
                     <article key={item.id} className="quote-item">
@@ -150,16 +168,42 @@ export function QuotePage() {
                         </p>
 
                         <div className="quote-item__controls">
-                          <label>
+                          <label className="quote-quantity-field">
                             Quantity
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(event) =>
-                                updateQuantity(item.id, event.target.value)
-                              }
-                            />
+                            <div className="quote-quantity-stepper">
+                              <button
+                                type="button"
+                                className="quote-quantity-button"
+                                aria-label={`Decrease quantity for ${item.name}`}
+                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              >
+                                −
+                              </button>
+
+                              <input
+                                type="number"
+                                min="1"
+                                value={item.quantity}
+                                onChange={(event) => {
+                                  const nextQuantity = event.target.valueAsNumber;
+
+                                  if (Number.isNaN(nextQuantity)) {
+                                    return;
+                                  }
+
+                                  updateQuantity(item.id, nextQuantity);
+                                }}
+                              />
+
+                              <button
+                                type="button"
+                                className="quote-quantity-button"
+                                aria-label={`Increase quantity for ${item.name}`}
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              >
+                                +
+                              </button>
+                            </div>
                           </label>
 
                           <button
@@ -177,10 +221,10 @@ export function QuotePage() {
               </div>
 
               <div className="quote-card">
-                <h2>Event details</h2>
+                <h2>Rental details</h2>
 
                 <div className="quote-form-grid">
-                  <label>
+                  <label className="quote-field quote-field--half">
                     Start date
                     <input
                       type="date"
@@ -189,8 +233,15 @@ export function QuotePage() {
                       onChange={handleDateChange}
                       className={errors.start ? 'quote-input-error' : ''}
                       aria-invalid={Boolean(errors.start)}
-                      aria-describedby={errors.start ? 'quote-start-error' : undefined}
+                      aria-describedby={
+                        errors.start
+                          ? 'quote-start-help quote-start-error'
+                          : 'quote-start-help'
+                      }
                     />
+                    <p id="quote-start-help" className="quote-help-text">
+                      Choose the first day you need the rentals.
+                    </p>
                     {errors.start && (
                       <p id="quote-start-error" className="quote-field-error">
                         {errors.start}
@@ -198,17 +249,25 @@ export function QuotePage() {
                     )}
                   </label>
 
-                  <label>
+                  <label className="quote-field quote-field--half">
                     End date
                     <input
                       type="date"
                       name="end"
                       value={rentalDates.end}
+                      min={rentalDates.start || undefined}
                       onChange={handleDateChange}
                       className={errors.end ? 'quote-input-error' : ''}
                       aria-invalid={Boolean(errors.end)}
-                      aria-describedby={errors.end ? 'quote-end-error' : undefined}
+                      aria-describedby={
+                        errors.end
+                          ? 'quote-end-help quote-end-error'
+                          : 'quote-end-help'
+                      }
                     />
+                    <p id="quote-end-help" className="quote-help-text">
+                      Choose the last day you need the rentals.
+                    </p>
                     {errors.end && (
                       <p id="quote-end-error" className="quote-field-error">
                         {errors.end}
@@ -246,27 +305,48 @@ export function QuotePage() {
                 {fulfillmentType === 'delivery' && (
                   <label className="quote-address-field">
                     Delivery address
-                    <textarea
-                      rows={4}
+                    <AddressAutocomplete
                       value={deliveryAddress}
-                      onChange={handleDeliveryAddressChange}
-                      className={errors.deliveryAddress ? 'quote-input-error' : ''}
-                      aria-invalid={Boolean(errors.deliveryAddress)}
-                      aria-describedby={
-                        errors.deliveryAddress ? 'quote-delivery-error' : undefined
-                      }
-                      placeholder="Enter the full delivery address for your quote."
+                      onChange={(value) => {
+                        setDeliveryAddress(value);
+                        setDeliveryAddressDetails(null);
+                        setErrors((current) => ({
+                          ...current,
+                          deliveryAddress: undefined,
+                        }));
+                      }}
+                      onSelectAddress={(selection) => {
+                        if (selection) {
+                          setDeliveryAddress(selection.formattedAddress);
+                          setDeliveryAddressDetails({
+                            formattedAddress: selection.formattedAddress,
+                            placeId: selection.placeId,
+                            lat: selection.lat,
+                            lng: selection.lng,
+                          });
+                          setErrors((current) => ({
+                            ...current,
+                            deliveryAddress: undefined,
+                          }));
+                        } else {
+                          setDeliveryAddressDetails(null);
+                        }
+                      }}
+                      error={errors.deliveryAddress}
+                      helpText="Start typing and choose the full delivery address from the suggestions."
+                      placeholder="Enter the full delivery address for your quote"
                     />
-                    {errors.deliveryAddress && (
-                      <p id="quote-delivery-error" className="quote-field-error">
-                        {errors.deliveryAddress}
-                      </p>
-                    )}
-                    <p className="quote-note">
-                      A physical address is required for delivery quotes because delivery pricing is based on mileage.
-                    </p>
                   </label>
                 )}
+              </div>
+
+              <div className="quote-card quote-process-card">
+                <h2>What happens next?</h2>
+                <ul className="quote-process-list">
+                  <li>We review your rental items and rental details.</li>
+                  <li>We confirm availability for your requested dates.</li>
+                  <li>We follow up with pricing and pickup or delivery details.</li>
+                </ul>
               </div>
             </div>
 
@@ -278,9 +358,7 @@ export function QuotePage() {
                   <li>
                     {items.length} rental item{items.length === 1 ? '' : 's'} selected
                   </li>
-                  <li>
-                    Total quantity: {totalQuantity}
-                  </li>
+                  <li>Total quantity: {totalQuantity}</li>
                   <li>
                     Dates:{' '}
                     {rentalDates.start && rentalDates.end
@@ -294,12 +372,19 @@ export function QuotePage() {
                 </ul>
 
                 <p>
-                  Final pricing and availability will be confirmed after your inquiry is reviewed.
+                  Final pricing and availability will be confirmed after your request is reviewed.
                 </p>
+
+                {Object.keys(errors).length > 0 && (
+                  <div className="quote-error-summary" role="alert">
+                    Please fix the highlighted fields before continuing.
+                  </div>
+                )}
 
                 <button
                   type="button"
                   className="primary-button quote-continue-button"
+                  aria-label="Continue to Checkout from quote summary"
                   onClick={handleContinue}
                 >
                   Continue to Checkout
