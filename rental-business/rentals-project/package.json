@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.1.1",
+    "@mapbox/mapbox-sdk": "^0.16.2",
     "axios": "^1.8.4",
     "dayjs": "^1.11.13",
     "react": "^19.1.0",

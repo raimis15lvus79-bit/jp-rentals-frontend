@@ -141,13 +141,15 @@ export function QuotePage() {
                   </div>
 
                   <button
-                    type="button"
-                    className="primary-button quote-mobile-bar__button"
-                    aria-label="Continue to Checkout from mobile summary"
-                    onClick={handleContinue}
-                  >
-                    Continue
-                  </button>
+  type="button"
+  className="primary-button quote-mobile-bar__button"
+  aria-label="Continue to checkout from mobile summary"
+  onClick={handleContinue}
+  disabled={!hasItems}
+  aria-disabled={!hasItems}
+>
+  Continue
+</button>
                 </div>
 
                 <div className="quote-items">
@@ -382,13 +384,15 @@ export function QuotePage() {
                 )}
 
                 <button
-                  type="button"
-                  className="primary-button quote-continue-button"
-                  aria-label="Continue to Checkout from quote summary"
-                  onClick={handleContinue}
-                >
-                  Continue to Checkout
-                </button>
+  type="button"
+  className="primary-button quote-continue-button"
+  aria-label="Continue to Checkout from quote summary"
+  onClick={handleContinue}
+  disabled={!hasItems}
+  aria-disabled={!hasItems}
+>
+  Continue to Checkout
+</button>
 
                 <Link to="/rentals" className="secondary-button quote-back-link">
                   Add More Rentals

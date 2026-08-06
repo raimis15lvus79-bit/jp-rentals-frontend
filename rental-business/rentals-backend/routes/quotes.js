@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import nodemailer from 'nodemailer';
 
@@ -11,14 +12,16 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
+    pass: process.env.EMAIL_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
 });
 
 router.post('/', async (req, res) => {
   try {
     const { customer, quote } = req.body;
-
     const fullName = customer?.fullName?.trim() || '';
     const email = customer?.email?.trim() || '';
     const eventType = customer?.eventType?.trim() || '';
@@ -27,6 +30,7 @@ router.post('/', async (req, res) => {
 
     const fulfillmentType = quote?.fulfillmentType?.trim() || '';
     const deliveryAddress = quote?.deliveryAddress?.trim() || '';
+    const deliveryAddressDetails = quote?.deliveryAddressDetails || null;
     const rentalStart = quote?.rentalDates?.start?.trim() || '';
     const rentalEnd = quote?.rentalDates?.end?.trim() || '';
     const items = Array.isArray(quote?.items) ? quote.items : [];
@@ -90,6 +94,8 @@ Rental Start: ${rentalStart || 'Not provided'}
 Rental End: ${rentalEnd || 'Not provided'}
 Fulfillment Type: ${fulfillmentType || 'Not provided'}
 Delivery Address: ${deliveryAddress || 'Not provided'}
+${deliveryAddressDetails?.lat && deliveryAddressDetails?.lng ? `Delivery Coordinates: ${deliveryAddressDetails.lat}, ${deliveryAddressDetails.lng}` : ''}
+${deliveryAddressDetails?.placeId ? `Place ID: ${deliveryAddressDetails.placeId}` : ''}
 
 Requested Items
 ${itemsList}

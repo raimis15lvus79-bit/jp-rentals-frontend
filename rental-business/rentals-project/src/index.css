@@ -103,3 +103,100 @@ select:focus,
 input:focus {
   outline: 2px solid rgb(25, 135, 84);
 }
+
+/* Address Autocomplete Dropdown */
+.quote-address-autocomplete {
+  position: relative;
+}
+
+.quote-address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.quote-address-suggestions li {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.quote-address-suggestions li:last-child {
+  border-bottom: none;
+}
+
+.quote-address-suggestions li:hover {
+  background-color: #f5f5f5;
+}
+
+/* Address Autocomplete - Enhanced Styling */
+.quote-address-autocomplete {
+  position: relative;
+}
+
+/* Smooth transition for input padding */
+.quote-address-autocomplete input {
+  transition: padding-right 0.2s ease;
+}
+
+.quote-address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.quote-address-suggestions li {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  color: #333;
+  transition: background-color 0.15s ease;
+}
+
+.quote-address-suggestions li:last-child {
+  border-bottom: none;
+}
+
+.quote-address-suggestions li:hover {
+  background-color: #f5f7fa;
+}
+
+.quote-input-error {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.quote-help-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.quote-field-error {
+  font-size: 12px;
+  color: #dc3545;
+  margin-top: 4px;
+}

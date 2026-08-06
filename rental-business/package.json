@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "@types/google.maps": "^3.65.3",
+    "@types/mapbox__mapbox-sdk": "^0.16.5"
+  }
+}

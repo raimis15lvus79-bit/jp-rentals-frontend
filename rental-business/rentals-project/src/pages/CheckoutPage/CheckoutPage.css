@@ -246,3 +246,53 @@
     width: 100%;
   }
 }
+
+.checkout-field-full {
+  grid-column: 1 / -1;
+}
+
+.quote-address-autocomplete {
+  width: 100%;
+}
+
+.quote-address-autocomplete input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  color: #111827;
+  font: inherit;
+}
+
+.quote-address-autocomplete input:focus {
+  outline: none;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+}
+
+.quote-address-autocomplete .quote-input-error {
+  border-color: #d92d20 !important;
+  box-shadow: 0 0 0 4px rgba(217, 45, 32, 0.12);
+}
+
+.quote-address-suggestions {
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+}
+
+.quote-field-error {
+  display: block;
+  margin: 4px 0 0;
+  color: #b42318;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+.checkout-notes-field + textarea + .checkout-field-help {
+  margin-top: 6px;
+}

@@ -1,5 +1,22 @@
-import { useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
-import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+} from 'react';
+
+type MapboxFeature = {
+  id: string;
+  text: string;
+  place_name: string;
+  center?: [number, number];
+};
+
+type MapboxGeocodingResponse = {
+  features: MapboxFeature[];
+};
 
 type AddressSelection = {
   formattedAddress: string;
@@ -17,13 +34,7 @@ type AddressAutocompleteProps = {
   placeholder?: string;
 };
 
-const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
-if (apiKey) {
-  setOptions({
-    key: apiKey,
-  });
-}
+const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 export function AddressAutocomplete({
   value,
@@ -36,115 +47,312 @@ export function AddressAutocomplete({
   const inputId = useId();
   const helpId = `${inputId}-help`;
   const errorId = `${inputId}-error`;
+  const listboxId = `${inputId}-listbox`;
 
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const placeListenerRef = useRef<google.maps.MapsEventListener | null>(null);
-  const onChangeRef = useRef(onChange);
-  const onSelectAddressRef = useRef(onSelectAddress);
+  const blurTimerRef = useRef<number | null>(null);
 
+  const [suggestions, setSuggestions] = useState<
+    Array<{
+      id: string;
+      text: string;
+      placeName: string;
+      center: [number, number] | null;
+    }>
+  >([]);
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState('');
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
+  if (!mapboxToken) {
+    setLoadError('Mapbox access token is missing.');
+    setIsReady(false);
+    setIsLoading(false);
+    return;
+  }
+
+  setIsReady(true);
+}, []);
 
   useEffect(() => {
-    onSelectAddressRef.current = onSelectAddress;
-  }, [onSelectAddress]);
+    let isActive = true;
 
-  useEffect(() => {
-    let active = true;
+    async function fetchSuggestions(query: string) {
+      if (!query || query.trim().length < 3 || !mapboxToken) {
+  setSuggestions([]);
+  setShowSuggestions(false);
+  setActiveIndex(-1);
+  setIsLoading(false);
+  return;
+}
 
-    async function setupAutocomplete() {
-      if (!inputRef.current || autocompleteRef.current) return;
-
-      if (!apiKey) {
-        setLoadError('Google Maps API key is missing.');
-        return;
-      }
+      setIsLoading(true);
+      setLoadError('');
 
       try {
-        await importLibrary('places');
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+          query
+        )}.json?access_token=${mapboxToken}&types=address&country=US&limit=5`;
 
-        if (!active || !inputRef.current) return;
+        const response = await fetch(url);
 
-        const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
-          types: ['address'],
-          componentRestrictions: { country: 'us' },
-          fields: ['formatted_address', 'place_id', 'geometry'],
-        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch address suggestions');
+        }
 
-        const listener = autocomplete.addListener('place_changed', () => {
-          const place = autocomplete.getPlace();
+        const data: MapboxGeocodingResponse = await response.json();
 
-          const formattedAddress = place.formatted_address ?? '';
-          const placeId = place.place_id ?? '';
-          const lat = place.geometry?.location?.lat?.() ?? null;
-          const lng = place.geometry?.location?.lng?.() ?? null;
+        if (!isActive) return;
 
-          if (!formattedAddress || !placeId) {
-            onSelectAddressRef.current(null);
-            return;
-          }
+        if (data.features && data.features.length > 0) {
+          const results = data.features.map((feature: MapboxFeature) => ({
+            id: feature.id,
+            text: feature.text,
+            placeName: feature.place_name,
+            center: feature.center as [number, number] | null,
+          }));
 
-          onChangeRef.current(formattedAddress);
-          onSelectAddressRef.current({
-            formattedAddress,
-            placeId,
-            lat,
-            lng,
-          });
-        });
-
-        autocompleteRef.current = autocomplete;
-        placeListenerRef.current = listener;
-        setIsReady(true);
-      } catch {
-        if (active) {
-          setLoadError('Address lookup is temporarily unavailable. Please try again.');
+          setSuggestions(results);
+          setShowSuggestions(true);
+          setActiveIndex(-1);
+        } else {
+          setSuggestions([]);
+          setShowSuggestions(false);
+          setActiveIndex(-1);
+        }
+      } catch (fetchError) {
+        console.error('Mapbox geocoding error:', fetchError);
+        if (isActive) {
+          setSuggestions([]);
+          setShowSuggestions(false);
+          setActiveIndex(-1);
+          setLoadError('Address lookup is temporarily unavailable.');
+        }
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
         }
       }
     }
 
-    setupAutocomplete();
+    const debounceTimer = window.setTimeout(() => {
+      fetchSuggestions(value);
+    }, 300);
 
     return () => {
-      active = false;
-      placeListenerRef.current?.remove();
-      placeListenerRef.current = null;
-      autocompleteRef.current = null;
+      isActive = false;
+      window.clearTimeout(debounceTimer);
     };
-  }, []);
+  }, [value]);
 
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
-    onChange(event.target.value);
+    const nextValue = event.target.value;
+
+    onChange(nextValue);
     onSelectAddress(null);
+    setSelectedAddress('');
+    setShowSuggestions(nextValue.trim().length >= 3);
+    setActiveIndex(-1);
+  }
+
+  function handleSelectSuggestion(suggestion: {
+    id: string;
+    text: string;
+    placeName: string;
+    center: [number, number] | null;
+  }) {
+    const formattedAddress = suggestion.placeName;
+    const lat = suggestion.center ? suggestion.center[1] : null;
+    const lng = suggestion.center ? suggestion.center[0] : null;
+
+    onChange(formattedAddress);
+    onSelectAddress({
+      formattedAddress,
+      placeId: suggestion.id,
+      lat,
+      lng,
+    });
+
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setSelectedAddress(formattedAddress);
+    setActiveIndex(-1);
+  }
+
+  function handleBlur() {
+    blurTimerRef.current = window.setTimeout(() => {
+      setShowSuggestions(false);
+      setActiveIndex(-1);
+    }, 150);
+  }
+
+  function handleFocus() {
+    if (value.trim().length >= 3 && suggestions.length > 0) {
+      setShowSuggestions(true);
+    }
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Escape') {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setActiveIndex(-1);
+      inputRef.current?.blur();
+      return;
+    }
+
+    if (!showSuggestions || suggestions.length === 0) {
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveIndex((current) => {
+        const nextIndex = current < suggestions.length - 1 ? current + 1 : 0;
+        return nextIndex;
+      });
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveIndex((current) => {
+        const nextIndex = current > 0 ? current - 1 : suggestions.length - 1;
+        return nextIndex;
+      });
+    }
+
+    if (event.key === 'Enter' && activeIndex >= 0) {
+      event.preventDefault();
+      handleSelectSuggestion(suggestions[activeIndex]);
+    }
   }
 
   return (
-    <div className="quote-address-autocomplete">
-      <input
-        ref={inputRef}
-        id={inputId}
-        type="text"
-        autoComplete="street-address"
-        value={value}
-        onChange={handleInputChange}
-        placeholder={placeholder}
-        className={error ? 'quote-input-error' : ''}
-        aria-invalid={Boolean(error)}
-        aria-describedby={error ? `${helpId} ${errorId}` : helpId}
-      />
+    <div className="quote-address-autocomplete" style={{ position: 'relative' }}>
+      <div style={{ position: 'relative' }}>
+        <input
+          ref={inputRef}
+          id={inputId}
+          name="deliveryAddress"
+          type="text"
+          role="combobox"
+          autoComplete="street-address"
+          value={value}
+          onChange={handleInputChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className={error ? 'quote-input-error' : ''}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${helpId} ${errorId}` : helpId}
+          aria-autocomplete="list"
+          aria-controls={listboxId}
+          aria-expanded={showSuggestions}
+          aria-haspopup="listbox"
+          aria-activedescendant={
+            activeIndex >= 0 && suggestions[activeIndex]
+              ? `${inputId}-option-${activeIndex}`
+              : undefined
+          }
+          style={{
+            paddingRight: selectedAddress && !error ? '40px' : '12px',
+            transition: 'padding-right 0.2s ease',
+          }}
+        />
+
+        {selectedAddress && !error && (
+          <div
+            style={{
+              position: 'absolute',
+              right: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              pointerEvents: 'none',
+              color: '#28a745',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            aria-hidden="true"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16.667 5.167L7.5 14.333L3.333 10.167"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        )}
+      </div>
+
+      {showSuggestions && suggestions.length > 0 && (
+        <ul
+          id={listboxId}
+          role="listbox"
+          className="quote-address-suggestions"
+          style={{
+            position: 'absolute',
+            zIndex: 1000,
+            backgroundColor: '#fff',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            maxHeight: '200px',
+            overflowY: 'auto',
+            width: '100%',
+            listStyle: 'none',
+            padding: 0,
+            margin: '4px 0 0',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          }}
+        >
+          {suggestions.map((suggestion, index) => (
+            <li
+              key={suggestion.id}
+              id={`${inputId}-option-${index}`}
+              role="option"
+              aria-selected={index === activeIndex}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                if (blurTimerRef.current) {
+                  window.clearTimeout(blurTimerRef.current);
+                }
+                handleSelectSuggestion(suggestion);
+              }}
+              style={{
+                padding: '10px 12px',
+                cursor: 'pointer',
+                borderBottom: index < suggestions.length - 1 ? '1px solid #eee' : 'none',
+                backgroundColor: index === activeIndex ? '#f5f5f5' : '#fff',
+              }}
+            >
+              {suggestion.placeName}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <p id={helpId} className="quote-help-text">
         {loadError || helpText}
         {!loadError && !isReady ? ' Loading address suggestions...' : ''}
+        {isLoading && !loadError ? ' Searching...' : ''}
       </p>
 
       {error ? (
-        <p id={errorId} className="quote-field-error">
+        <p id={errorId} className="quote-field-error" role="alert">
           {error}
         </p>
       ) : null}

@@ -10,34 +10,42 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 type CheckoutErrors = {
   fullName?: string;
   email?: string;
+  phone?: string;
   eventType?: string;
   startDate?: string;
   endDate?: string;
+  guestCount?: string;
+  notes?: string;
   deliveryAddress?: string;
 };
 
 export function CheckoutPage() {
   const navigate = useNavigate();
   const {
-    items,
-    rentalDates,
-    fulfillmentType,
-    deliveryAddress,
-    deliveryAddressDetails,
-    setDeliveryAddress,
-    setDeliveryAddressDetails,
-    clearQuote,
-  } = useQuote();
+  items,
+  rentalDates,
+  setRentalDates,
+  fulfillmentType,
+  deliveryAddress,
+  deliveryAddressDetails,
+  setDeliveryAddress,
+  setDeliveryAddressDetails,
+  clearQuote,
+} = useQuote();
 
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
+    phone: '',
     eventType: '',
+    startDate: rentalDates.start || '',
+    endDate: rentalDates.end || '',
     guestCount: '',
     notes: '',
   });
 
   const [errors, setErrors] = useState<CheckoutErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
@@ -47,32 +55,128 @@ export function CheckoutPage() {
     return items.reduce((total, item) => total + item.quantity, 0);
   }, [items]);
 
-  const hasDetailErrors =
-    Boolean(errors.startDate) ||
-    Boolean(errors.endDate) ||
-    Boolean(errors.deliveryAddress);
+  const validateField = (name: string, value: string, nextFormData = formData) => {
+    switch (name) {
+      case 'fullName':
+        if (!value.trim()) return 'Please enter your full name.';
+        if (value.trim().length < 2) return 'Full name must be at least 2 characters.';
+        return '';
 
-  const handleChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+      case 'email': {
+        const emailValue = value.trim();
+        if (!emailValue) return 'Please enter your email address.';
+        if (!EMAIL_REGEX.test(emailValue)) return 'Please enter a valid email address.';
+        return '';
+      }
+
+      case 'phone': {
+        if (!value.trim()) return 'Phone number is required.';
+        const digits = value.replace(/\D/g, '');
+        if (digits.length < 10) return 'Enter a valid phone number.';
+        return '';
+      }
+
+      case 'eventType':
+        if (!value) return 'Please select an event type.';
+        return '';
+
+      case 'startDate':
+        if (!value) return 'Please choose a rental start date.';
+        return '';
+
+      case 'endDate':
+        if (!value) return 'Please choose a rental end date.';
+        if (nextFormData.startDate && value < nextFormData.startDate) {
+          return 'End date must be on or after the start date.';
+        }
+        return '';
+
+      case 'guestCount':
+        if (!value.trim()) return '';
+        if (!/^\d+$/.test(value.trim())) return 'Guest count must be a whole number.';
+        if (Number(value.trim()) < 1) return 'Guest count must be at least 1.';
+        return '';
+
+      case 'notes':
+        if (value.length > 1000) return 'Notes must be 1000 characters or less.';
+        return '';
+
+      default:
+        return '';
+    }
+  };
+
+  const handleBlur = (
+    event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = event.target;
 
-    setFormData((currentData) => ({
-      ...currentData,
-      [name]: value,
+    setTouched((current) => ({
+      ...current,
+      [name]: true,
     }));
 
-    if (name === 'fullName' || name === 'email' || name === 'eventType') {
+    setErrors((current) => ({
+      ...current,
+      [name]: validateField(name, value) || undefined,
+    }));
+
+    if (name === 'startDate' && touched.endDate) {
       setErrors((current) => ({
         ...current,
-        [name]: undefined,
+        startDate: validateField('startDate', value) || undefined,
+        endDate: validateField('endDate', formData.endDate, {
+          ...formData,
+          startDate: value,
+        }) || undefined,
       }));
     }
-
-    if (submitError) {
-      setSubmitError('');
-    }
   };
+
+  const handleChange = (
+  event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+) => {
+  const { name, value } = event.target;
+
+  const nextFormData = {
+    ...formData,
+    [name]: value,
+  };
+
+  setFormData(nextFormData);
+
+  if (name === 'startDate' || name === 'endDate') {
+    setRentalDates({
+      ...rentalDates,
+      [name === 'startDate' ? 'start' : 'end']: value,
+    });
+  }
+
+  if (touched[name]) {
+    setErrors((current) => ({
+      ...current,
+      [name]: validateField(name, value, nextFormData) || undefined,
+    }));
+  }
+
+  if (name === 'startDate' && touched.endDate) {
+    setErrors((current) => ({
+      ...current,
+      endDate: validateField('endDate', nextFormData.endDate, nextFormData) || undefined,
+    }));
+  }
+
+  if (name === 'endDate' && touched.startDate) {
+    setErrors((current) => ({
+      ...current,
+      endDate: validateField('endDate', value, nextFormData) || undefined,
+    }));
+  }
+
+  if (submitError) {
+    setSubmitError('');
+  }
+};
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,38 +184,53 @@ export function CheckoutPage() {
     const nextErrors: CheckoutErrors = {};
     setSubmitError('');
 
-    if (!formData.fullName.trim()) {
-      nextErrors.fullName = 'Please enter your full name.';
-    }
+    const fullNameError = validateField('fullName', formData.fullName);
+    if (fullNameError) nextErrors.fullName = fullNameError;
 
-    const emailValue = formData.email.trim();
+    const emailError = validateField('email', formData.email);
+    if (emailError) nextErrors.email = emailError;
 
-    if (!emailValue) {
-      nextErrors.email = 'Please enter your email address.';
-    } else if (!EMAIL_REGEX.test(emailValue)) {
-      nextErrors.email = 'Please enter a valid email address.';
-    }
+    const phoneError = validateField('phone', formData.phone);
+    if (phoneError) nextErrors.phone = phoneError;
 
-    if (!formData.eventType) {
-      nextErrors.eventType = 'Please select an event type.';
-    }
+    const eventTypeError = validateField('eventType', formData.eventType);
+    if (eventTypeError) nextErrors.eventType = eventTypeError;
 
-    if (!rentalDates.start) {
-      nextErrors.startDate = 'Please return to the quote page and choose a start date.';
-    }
+    const startDateError = validateField('startDate', formData.startDate, formData);
+    if (startDateError) nextErrors.startDate = startDateError;
 
-    if (!rentalDates.end) {
-      nextErrors.endDate = 'Please return to the quote page and choose an end date.';
-    }
+    const endDateError = validateField('endDate', formData.endDate, formData);
+    if (endDateError) nextErrors.endDate = endDateError;
 
-    if (fulfillmentType === 'delivery' && !deliveryAddress.trim()) {
-      nextErrors.deliveryAddress = 'Please enter a delivery address.';
+    const guestCountError = validateField('guestCount', formData.guestCount);
+    if (guestCountError) nextErrors.guestCount = guestCountError;
+
+    const notesError = validateField('notes', formData.notes);
+    if (notesError) nextErrors.notes = notesError;
+
+    if (fulfillmentType === 'delivery') {
+      if (!deliveryAddress.trim()) {
+        nextErrors.deliveryAddress = 'Please enter a delivery address.';
+      } else if (!deliveryAddressDetails?.placeId) {
+        nextErrors.deliveryAddress = 'Please select a valid address from the suggestions.';
+      }
     }
 
     setErrors(nextErrors);
+    setTouched({
+      fullName: true,
+      email: true,
+      phone: true,
+      eventType: true,
+      startDate: true,
+      endDate: true,
+      guestCount: true,
+      notes: true,
+      deliveryAddress: fulfillmentType === 'delivery',
+    });
 
     if (Object.keys(nextErrors).length > 0) {
-      setSubmitError('Please fix the highlighted fields and details before submitting.');
+      setSubmitError('Please fix the highlighted fields before submitting.');
       return;
     }
 
@@ -121,6 +240,7 @@ export function CheckoutPage() {
       customer: {
         fullName: formData.fullName.trim(),
         email: formData.email.trim(),
+        phone: formData.phone.trim(),
         eventType: formData.eventType,
         guestCount: formData.guestCount.trim(),
         notes: formData.notes.trim(),
@@ -128,8 +248,8 @@ export function CheckoutPage() {
       quote: {
         items,
         rentalDates: {
-          start: rentalDates.start,
-          end: rentalDates.end,
+          start: formData.startDate,
+          end: formData.endDate,
         },
         fulfillmentType,
         deliveryAddress: deliveryAddress.trim(),
@@ -205,12 +325,15 @@ export function CheckoutPage() {
                   autoComplete="name"
                   value={formData.fullName}
                   onChange={handleChange}
+                  onBlur={handleBlur}
+                  required
+                  minLength={2}
                   className={errors.fullName ? 'checkout-input-error' : ''}
                   aria-invalid={Boolean(errors.fullName)}
                   aria-describedby={errors.fullName ? 'checkout-fullName-error' : undefined}
                 />
                 {errors.fullName && (
-                  <p id="checkout-fullName-error" className="checkout-field-error">
+                  <p id="checkout-fullName-error" className="checkout-field-error" role="alert">
                     {errors.fullName}
                   </p>
                 )}
@@ -226,13 +349,39 @@ export function CheckoutPage() {
                   inputMode="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={handleBlur}
+                  required
                   className={errors.email ? 'checkout-input-error' : ''}
                   aria-invalid={Boolean(errors.email)}
                   aria-describedby={errors.email ? 'checkout-email-error' : undefined}
                 />
                 {errors.email && (
-                  <p id="checkout-email-error" className="checkout-field-error">
+                  <p id="checkout-email-error" className="checkout-field-error" role="alert">
                     {errors.email}
+                  </p>
+                )}
+              </div>
+
+              <div className="checkout-field checkout-field-full">
+                <label htmlFor="phone">Phone number</label>
+                <input
+                  id="phone"
+                  type="tel"
+                  name="phone"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  required
+                  className={errors.phone ? 'checkout-input-error' : ''}
+                  aria-invalid={Boolean(errors.phone)}
+                  aria-describedby={errors.phone ? 'checkout-phone-error' : undefined}
+                  placeholder="(920) 555-1234"
+                />
+                {errors.phone && (
+                  <p id="checkout-phone-error" className="checkout-field-error" role="alert">
+                    {errors.phone}
                   </p>
                 )}
               </div>
@@ -248,6 +397,8 @@ export function CheckoutPage() {
                   name="eventType"
                   value={formData.eventType}
                   onChange={handleChange}
+                  onBlur={handleBlur}
+                  required
                   className={errors.eventType ? 'checkout-input-error' : ''}
                   aria-invalid={Boolean(errors.eventType)}
                   aria-describedby={
@@ -269,7 +420,7 @@ export function CheckoutPage() {
                   Choose the option that best matches the event for this rental.
                 </p>
                 {errors.eventType && (
-                  <p id="checkout-eventType-error" className="checkout-field-error">
+                  <p id="checkout-eventType-error" className="checkout-field-error" role="alert">
                     {errors.eventType}
                   </p>
                 )}
@@ -287,7 +438,13 @@ export function CheckoutPage() {
                   inputMode="numeric"
                   value={formData.guestCount}
                   onChange={handleChange}
-                  aria-describedby="checkout-guestCount-help"
+                  onBlur={handleBlur}
+                  aria-invalid={Boolean(errors.guestCount)}
+                  aria-describedby={
+                    errors.guestCount
+                      ? 'checkout-guestCount-help checkout-guestCount-error'
+                      : 'checkout-guestCount-help'
+                  }
                 />
                 <p
                   id="checkout-guestCount-help"
@@ -295,6 +452,54 @@ export function CheckoutPage() {
                 >
                   &nbsp;
                 </p>
+                {errors.guestCount && (
+                  <p id="checkout-guestCount-error" className="checkout-field-error" role="alert">
+                    {errors.guestCount}
+                  </p>
+                )}
+              </div>
+
+              <div className="checkout-field">
+                <label htmlFor="startDate">Start date</label>
+                <input
+                  id="startDate"
+                  type="date"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  required
+                  className={errors.startDate ? 'checkout-input-error' : ''}
+                  aria-invalid={Boolean(errors.startDate)}
+                  aria-describedby={errors.startDate ? 'checkout-startDate-error' : undefined}
+                />
+                {errors.startDate && (
+                  <p id="checkout-startDate-error" className="checkout-field-error" role="alert">
+                    {errors.startDate}
+                  </p>
+                )}
+              </div>
+
+              <div className="checkout-field">
+                <label htmlFor="endDate">End date</label>
+                <input
+                  id="endDate"
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  required
+                  min={formData.startDate || undefined}
+                  className={errors.endDate ? 'checkout-input-error' : ''}
+                  aria-invalid={Boolean(errors.endDate)}
+                  aria-describedby={errors.endDate ? 'checkout-endDate-error' : undefined}
+                />
+                {errors.endDate && (
+                  <p id="checkout-endDate-error" className="checkout-field-error" role="alert">
+                    {errors.endDate}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -303,8 +508,33 @@ export function CheckoutPage() {
                 <label htmlFor="deliveryAddress">Delivery address</label>
                 <AddressAutocomplete
                   value={deliveryAddress}
-                  onChange={setDeliveryAddress}
-                  onSelectAddress={setDeliveryAddressDetails}
+                  onChange={(value) => {
+                    setDeliveryAddress(value);
+
+                    if (submitError) {
+                      setSubmitError('');
+                    }
+
+                    if (errors.deliveryAddress) {
+                      setErrors((current) => ({
+                        ...current,
+                        deliveryAddress: value.trim()
+                          ? 'Please select a valid address from the suggestions.'
+                          : 'Please enter a delivery address.',
+                      }));
+                    }
+                  }}
+                  onSelectAddress={(details) => {
+                    setDeliveryAddressDetails(details);
+                    setTouched((current) => ({
+                      ...current,
+                      deliveryAddress: true,
+                    }));
+                    setErrors((current) => ({
+                      ...current,
+                      deliveryAddress: undefined,
+                    }));
+                  }}
                   error={errors.deliveryAddress}
                   helpText="Enter the delivery location, then choose a suggested address if available."
                   placeholder="Enter delivery address"
@@ -321,8 +551,25 @@ export function CheckoutPage() {
               rows={5}
               value={formData.notes}
               onChange={handleChange}
+              onBlur={handleBlur}
+              maxLength={1000}
+              className={errors.notes ? 'checkout-input-error' : ''}
+              aria-invalid={Boolean(errors.notes)}
+              aria-describedby={
+                errors.notes
+                  ? 'checkout-notes-help checkout-notes-error'
+                  : 'checkout-notes-help'
+              }
               placeholder="Share any location notes, event timing, or extra details."
             />
+            <p id="checkout-notes-help" className="checkout-field-help">
+              {formData.notes.length}/1000 characters
+            </p>
+            {errors.notes && (
+              <p id="checkout-notes-error" className="checkout-field-error" role="alert">
+                {errors.notes}
+              </p>
+            )}
 
             {submitError ? (
               <div className="checkout-error-message" role="alert">
@@ -330,13 +577,11 @@ export function CheckoutPage() {
               </div>
             ) : null}
 
-            {hasDetailErrors && (
+            {errors.deliveryAddress ? (
               <div className="checkout-error-message" role="alert">
-                {errors.startDate && <p>{errors.startDate}</p>}
-                {errors.endDate && <p>{errors.endDate}</p>}
-                {errors.deliveryAddress && <p>{errors.deliveryAddress}</p>}
+                <p>{errors.deliveryAddress}</p>
               </div>
-            )}
+            ) : null}
 
             <div className="checkout-actions">
               <button
@@ -360,7 +605,7 @@ export function CheckoutPage() {
             <div className="checkout-summary-block">
               <h3>Rental dates</h3>
               <p>
-                {rentalDates.start || 'Not selected'} to {rentalDates.end || 'Not selected'}
+                {formData.startDate || 'Not selected'} to {formData.endDate || 'Not selected'}
               </p>
             </div>
 
