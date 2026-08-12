@@ -21,8 +21,8 @@ export function Footer() {
           <Link to="/quote" className="footer-btn footer-btn--primary">
             Request Pricing
           </Link>
-          <a href="mailto:Jacobpaske08@gmail.com" className="footer-btn">
-            Jacobpaske08@gmail.com
+          <a href="mailto:jacobfoxvalley@gmail.com" className="footer-btn">
+            jacobfoxvalley@gmail.com
           </a>
         </div>
       </div>
