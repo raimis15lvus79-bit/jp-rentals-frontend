@@ -1,21 +1,83 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { Header } from '../../components/Header/Header';
 import { Footer } from '../../components/Footer/Footer';
+import { useQuote } from '../../context/QuoteContext';
 import './CheckoutSuccessPage.css';
 
 export function CheckoutSuccessPage() {
+  const navigate = useNavigate();
+  const { items, rentalDates, fulfillmentType, deliveryAddress } = useQuote();
+  const [hasValidQuote, setHasValidQuote] = useState(false);
+
+  useEffect(() => {
+    if (items.length === 0) {
+      navigate('/rentals', { replace: true });
+      return;
+    }
+    setHasValidQuote(true);
+  }, [items, navigate]);
+
+  if (!hasValidQuote) {
+    return null;
+  }
+
   return (
     <>
       <Header />
 
       <main className="checkout-success-page">
         <section className="checkout-success-card">
-          <p className="checkout-success-eyebrow">Inquiry submitted</p>
-          <h1>Your rental inquiry has been received.</h1>
+          <div
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            className="checkout-success-announcement"
+          >
+            <p className="checkout-success-eyebrow">Inquiry submitted</p>
+            <h1>Your rental inquiry has been received.</h1>
+          </div>
+
           <p className="checkout-success-lead">
-            Thanks for sending your request. We’ll review your rental items,
+            Thanks for sending your request. We'll review your rental items,
             event dates, delivery or pickup details, and any notes you included.
           </p>
+
+          {items.length > 0 && (
+            <div className="checkout-success-summary">
+              <h2>Quote summary</h2>
+              <dl className="checkout-success-details">
+                <div className="checkout-success-block">
+                  <dt>Rental items</dt>
+                  <dd>
+                    {items.length} item{items.length === 1 ? '' : 's'} ·{' '}
+                    {items.reduce((total, item) => total + item.quantity, 0)} total piece
+                    {items.reduce((total, item) => total + item.quantity, 0) === 1 ? '' : 's'}
+                  </dd>
+                </div>
+
+                <div className="checkout-success-block">
+                  <dt>Rental dates</dt>
+                  <dd>
+                    {rentalDates.start || 'Not selected'} to{' '}
+                    {rentalDates.end || 'Not selected'}
+                  </dd>
+                </div>
+
+                <div className="checkout-success-block">
+                  <dt>Fulfillment</dt>
+                  <dd>{fulfillmentType === 'delivery' ? 'Delivery quote' : 'Pickup'}</dd>
+                </div>
+
+                {fulfillmentType === 'delivery' && deliveryAddress && (
+                  <div className="checkout-success-block">
+                    <dt>Delivery address</dt>
+                    <dd>{deliveryAddress}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+          )}
 
           <div className="checkout-success-details">
             <div className="checkout-success-block">

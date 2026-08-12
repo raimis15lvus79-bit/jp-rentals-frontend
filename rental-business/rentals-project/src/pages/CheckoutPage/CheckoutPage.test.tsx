@@ -2,10 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { CheckoutPage } from './CheckoutPage';
+import { API_URL } from '../../config';
 
 const mockNavigate = vi.fn();
 const mockUseQuote = vi.fn();
 const mockClearQuote = vi.fn();
+const mockSetCustomerInfo = vi.fn();
+const mockSetDeliveryAddress = vi.fn();
+const mockSetDeliveryAddressDetails = vi.fn();
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
@@ -19,6 +23,26 @@ vi.mock('../../context/QuoteContext', () => ({
   useQuote: () => mockUseQuote(),
 }));
 
+const baseQuoteState = {
+  items: [],
+  rentalDates: { start: '', end: '' },
+  fulfillmentType: 'pickup' as const,
+  deliveryAddress: '',
+  deliveryAddressDetails: null,
+  customerInfo: {
+    fullName: '',
+    email: '',
+    phone: '',
+    eventType: '',
+    guestCount: '',
+    notes: '',
+  },
+  setCustomerInfo: mockSetCustomerInfo,
+  setDeliveryAddress: mockSetDeliveryAddress,
+  setDeliveryAddressDetails: mockSetDeliveryAddressDetails,
+  clearQuote: mockClearQuote,
+};
+
 describe('CheckoutPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -27,12 +51,8 @@ describe('CheckoutPage', () => {
 
   it('renders the empty state when there are no quote items', () => {
     mockUseQuote.mockReturnValue({
+      ...baseQuoteState,
       items: [],
-      rentalDates: { start: '', end: '' },
-      fulfillmentType: 'pickup',
-      deliveryAddress: '',
-      deliveryAddressDetails: null,
-      clearQuote: mockClearQuote,
     });
 
     render(
@@ -47,6 +67,7 @@ describe('CheckoutPage', () => {
 
   it('renders the checkout form and quote summary', () => {
     mockUseQuote.mockReturnValue({
+      ...baseQuoteState,
       items: [
         {
           id: 'chairs',
@@ -55,10 +76,6 @@ describe('CheckoutPage', () => {
         },
       ],
       rentalDates: { start: '2026-07-25', end: '2026-07-26' },
-      fulfillmentType: 'pickup',
-      deliveryAddress: '',
-      deliveryAddressDetails: null,
-      clearQuote: mockClearQuote,
     });
 
     render(
@@ -70,6 +87,7 @@ describe('CheckoutPage', () => {
     expect(screen.getByText('Submit your rental inquiry.')).toBeInTheDocument();
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument();
     expect(screen.getByText(/1 item selected/i)).toBeInTheDocument();
     expect(screen.getByText(/4 total pieces/i)).toBeInTheDocument();
     expect(screen.getByText(/white resin folding chairs x 4/i)).toBeInTheDocument();
@@ -77,6 +95,7 @@ describe('CheckoutPage', () => {
 
   it('shows validation errors when required contact fields are missing', () => {
     mockUseQuote.mockReturnValue({
+      ...baseQuoteState,
       items: [
         {
           id: 'chairs',
@@ -85,10 +104,6 @@ describe('CheckoutPage', () => {
         },
       ],
       rentalDates: { start: '2026-07-25', end: '2026-07-26' },
-      fulfillmentType: 'pickup',
-      deliveryAddress: '',
-      deliveryAddressDetails: null,
-      clearQuote: mockClearQuote,
     });
 
     render(
@@ -101,15 +116,17 @@ describe('CheckoutPage', () => {
 
     expect(screen.getByText('Please enter your full name.')).toBeInTheDocument();
     expect(screen.getByText('Please enter your email address.')).toBeInTheDocument();
+    expect(screen.getByText('Phone number is required.')).toBeInTheDocument();
     expect(screen.getByText('Please select an event type.')).toBeInTheDocument();
     expect(
-      screen.getByText('Please fix the highlighted fields and details before submitting.')
+      screen.getByText('Please fix the highlighted fields before submitting.')
     ).toBeInTheDocument();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('shows an error for an invalid email address', () => {
     mockUseQuote.mockReturnValue({
+      ...baseQuoteState,
       items: [
         {
           id: 'chairs',
@@ -118,10 +135,6 @@ describe('CheckoutPage', () => {
         },
       ],
       rentalDates: { start: '2026-07-25', end: '2026-07-26' },
-      fulfillmentType: 'pickup',
-      deliveryAddress: '',
-      deliveryAddressDetails: null,
-      clearQuote: mockClearQuote,
     });
 
     render(
@@ -138,6 +151,10 @@ describe('CheckoutPage', () => {
       target: { value: 'not-an-email' },
     });
 
+    fireEvent.change(screen.getByLabelText(/phone number/i), {
+      target: { value: '9205551234' },
+    });
+
     fireEvent.change(screen.getByLabelText(/event type/i), {
       target: { value: 'birthday-party' },
     });
@@ -150,6 +167,7 @@ describe('CheckoutPage', () => {
 
   it('shows quote-detail errors when rental dates are missing', () => {
     mockUseQuote.mockReturnValue({
+      ...baseQuoteState,
       items: [
         {
           id: 'chairs',
@@ -158,10 +176,6 @@ describe('CheckoutPage', () => {
         },
       ],
       rentalDates: { start: '', end: '' },
-      fulfillmentType: 'pickup',
-      deliveryAddress: '',
-      deliveryAddressDetails: null,
-      clearQuote: mockClearQuote,
     });
 
     render(
@@ -178,23 +192,24 @@ describe('CheckoutPage', () => {
       target: { value: 'jordan@example.com' },
     });
 
+    fireEvent.change(screen.getByLabelText(/phone number/i), {
+      target: { value: '9205551234' },
+    });
+
     fireEvent.change(screen.getByLabelText(/event type/i), {
       target: { value: 'birthday-party' },
     });
 
     fireEvent.click(screen.getByRole('button', { name: /submit inquiry/i }));
 
-    expect(
-      screen.getByText('Please return to the quote page and choose a start date.')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('Please return to the quote page and choose an end date.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Please choose a rental start date.')).toBeInTheDocument();
+    expect(screen.getByText('Please choose a rental end date.')).toBeInTheDocument();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('requires a delivery address when fulfillment type is delivery', async () => {
     mockUseQuote.mockReturnValue({
+      ...baseQuoteState,
       items: [
         {
           id: 'chairs',
@@ -206,7 +221,6 @@ describe('CheckoutPage', () => {
       fulfillmentType: 'delivery',
       deliveryAddress: '',
       deliveryAddressDetails: null,
-      clearQuote: mockClearQuote,
     });
 
     render(
@@ -221,6 +235,10 @@ describe('CheckoutPage', () => {
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'jordan@example.com' },
+    });
+
+    fireEvent.change(screen.getByLabelText(/phone number/i), {
+      target: { value: '9205551234' },
     });
 
     fireEvent.change(screen.getByLabelText(/event type/i), {
@@ -248,6 +266,7 @@ describe('CheckoutPage', () => {
     vi.stubGlobal('fetch', mockFetch);
 
     mockUseQuote.mockReturnValue({
+      ...baseQuoteState,
       items: [
         {
           id: 'chairs',
@@ -256,10 +275,6 @@ describe('CheckoutPage', () => {
         },
       ],
       rentalDates: { start: '2026-07-25', end: '2026-07-26' },
-      fulfillmentType: 'pickup',
-      deliveryAddress: '',
-      deliveryAddressDetails: null,
-      clearQuote: mockClearQuote,
     });
 
     render(
@@ -274,6 +289,10 @@ describe('CheckoutPage', () => {
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'jordan@example.com' },
+    });
+
+    fireEvent.change(screen.getByLabelText(/phone number/i), {
+      target: { value: '9205551234' },
     });
 
     fireEvent.change(screen.getByLabelText(/event type/i), {
@@ -292,7 +311,7 @@ describe('CheckoutPage', () => {
 
     await waitFor(() =>
       expect(mockFetch).toHaveBeenCalledWith(
-        '/api/quotes',
+        `${API_URL}/api/quotes`,
         expect.objectContaining({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -301,6 +320,7 @@ describe('CheckoutPage', () => {
     );
 
     await waitFor(() => expect(mockClearQuote).toHaveBeenCalled());
+    await waitFor(() => expect(mockSetCustomerInfo).toHaveBeenCalled());
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/checkout/success'));
   });
 
@@ -319,6 +339,7 @@ describe('CheckoutPage', () => {
     vi.stubGlobal('fetch', mockFetch);
 
     mockUseQuote.mockReturnValue({
+      ...baseQuoteState,
       items: [
         {
           id: 'chairs',
@@ -327,10 +348,6 @@ describe('CheckoutPage', () => {
         },
       ],
       rentalDates: { start: '2026-07-25', end: '2026-07-26' },
-      fulfillmentType: 'pickup',
-      deliveryAddress: '',
-      deliveryAddressDetails: null,
-      clearQuote: mockClearQuote,
     });
 
     render(
@@ -345,6 +362,10 @@ describe('CheckoutPage', () => {
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'jordan@example.com' },
+    });
+
+    fireEvent.change(screen.getByLabelText(/phone number/i), {
+      target: { value: '9205551234' },
     });
 
     fireEvent.change(screen.getByLabelText(/event type/i), {
@@ -372,6 +393,7 @@ describe('CheckoutPage', () => {
     vi.stubGlobal('fetch', mockFetch);
 
     mockUseQuote.mockReturnValue({
+      ...baseQuoteState,
       items: [
         {
           id: 'chairs',
@@ -380,10 +402,6 @@ describe('CheckoutPage', () => {
         },
       ],
       rentalDates: { start: '2026-07-25', end: '2026-07-26' },
-      fulfillmentType: 'pickup',
-      deliveryAddress: '',
-      deliveryAddressDetails: null,
-      clearQuote: mockClearQuote,
     });
 
     render(
@@ -398,6 +416,10 @@ describe('CheckoutPage', () => {
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'jordan@example.com' },
+    });
+
+    fireEvent.change(screen.getByLabelText(/phone number/i), {
+      target: { value: '9205551234' },
     });
 
     fireEvent.change(screen.getByLabelText(/event type/i), {
@@ -418,6 +440,7 @@ describe('CheckoutPage', () => {
     vi.stubGlobal('fetch', mockFetch);
 
     mockUseQuote.mockReturnValue({
+      ...baseQuoteState,
       items: [
         {
           id: 'chairs',
@@ -426,10 +449,6 @@ describe('CheckoutPage', () => {
         },
       ],
       rentalDates: { start: '2026-07-25', end: '2026-07-26' },
-      fulfillmentType: 'pickup',
-      deliveryAddress: '',
-      deliveryAddressDetails: null,
-      clearQuote: mockClearQuote,
     });
 
     render(
@@ -444,6 +463,10 @@ describe('CheckoutPage', () => {
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'jordan@example.com' },
+    });
+
+    fireEvent.change(screen.getByLabelText(/phone number/i), {
+      target: { value: '9205551234' },
     });
 
     fireEvent.change(screen.getByLabelText(/event type/i), {

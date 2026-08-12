@@ -125,3 +125,35 @@
     flex: unset;
   }
 }
+
+/* Add to your ProductCard.css */
+
+.primary-button {
+  position: relative;
+  padding-right: 1.5rem; /* Make room for badge */
+}
+
+.quantity-badge {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  background-color: #ff4444;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* If your button uses flexbox, you may need this instead */
+.primary-button .quantity-badge {
+  position: static;
+  margin-left: 0.5rem;
+  top: auto;
+  right: auto;
+}

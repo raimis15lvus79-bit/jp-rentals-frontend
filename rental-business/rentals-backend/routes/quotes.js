@@ -1,12 +1,16 @@
 import 'dotenv/config';
 import express from 'express';
 import nodemailer from 'nodemailer';
+import { calculateDrivingDistance } from '../utils/distance.js';
+
 
 const router = express.Router();
+
 
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
   console.warn('Missing EMAIL_USER or EMAIL_PASS environment variables.');
 }
+
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -19,6 +23,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+
 router.post('/', async (req, res) => {
   try {
     const { customer, quote } = req.body;
@@ -28,12 +33,14 @@ router.post('/', async (req, res) => {
     const guestCount = customer?.guestCount?.toString().trim() || '';
     const notes = customer?.notes?.trim() || '';
 
+
     const fulfillmentType = quote?.fulfillmentType?.trim() || '';
     const deliveryAddress = quote?.deliveryAddress?.trim() || '';
     const deliveryAddressDetails = quote?.deliveryAddressDetails || null;
     const rentalStart = quote?.rentalDates?.start?.trim() || '';
     const rentalEnd = quote?.rentalDates?.end?.trim() || '';
     const items = Array.isArray(quote?.items) ? quote.items : [];
+
 
     if (!fullName || !email || items.length === 0) {
       return res.status(400).json({
@@ -42,12 +49,14 @@ router.post('/', async (req, res) => {
       });
     }
 
+
     if (fulfillmentType === 'delivery' && !deliveryAddress) {
       return res.status(400).json({
         success: false,
         message: 'Delivery address is required for delivery quotes.'
       });
     }
+
 
     const invalidItem = items.find(
       (item) =>
@@ -57,12 +66,14 @@ router.post('/', async (req, res) => {
         item.quantity < 1
     );
 
+
     if (invalidItem) {
       return res.status(400).json({
         success: false,
         message: 'One or more rental items are invalid.'
       });
     }
+
 
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       return res.status(500).json({
@@ -71,9 +82,32 @@ router.post('/', async (req, res) => {
       });
     }
 
+
+    // Calculate driving distance if delivery and business location are available
+    let distanceInfo = null;
+    
+    if (
+      fulfillmentType === 'delivery' &&
+      deliveryAddressDetails?.lat &&
+      deliveryAddressDetails?.lng &&
+      process.env.MAPBOX_ACCESS_TOKEN &&
+      process.env.BUSINESS_LAT &&
+      process.env.BUSINESS_LON
+    ) {
+      distanceInfo = await calculateDrivingDistance(
+        parseFloat(process.env.BUSINESS_LAT),
+        parseFloat(process.env.BUSINESS_LON),
+        parseFloat(deliveryAddressDetails.lat),
+        parseFloat(deliveryAddressDetails.lng),
+        process.env.MAPBOX_ACCESS_TOKEN
+      );
+    }
+
+
     const itemsList = items
       .map((item) => `- ${item.name} x ${item.quantity}`)
       .join('\n');
+
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -83,31 +117,40 @@ router.post('/', async (req, res) => {
       text: `
 New quote request received
 
+
 Customer Information
 Name: ${fullName}
 Email: ${email}
 Event Type: ${eventType || 'Not provided'}
 Guest Count: ${guestCount || 'Not provided'}
 
+
 Quote Details
 Rental Start: ${rentalStart || 'Not provided'}
 Rental End: ${rentalEnd || 'Not provided'}
 Fulfillment Type: ${fulfillmentType || 'Not provided'}
 Delivery Address: ${deliveryAddress || 'Not provided'}
+${distanceInfo ? `Driving Distance: ${distanceInfo.distanceMiles} mi (${distanceInfo.distanceKm} km)
+Estimated Drive Time: ${distanceInfo.durationMinutes} minutes` : ''}
 ${deliveryAddressDetails?.lat && deliveryAddressDetails?.lng ? `Delivery Coordinates: ${deliveryAddressDetails.lat}, ${deliveryAddressDetails.lng}` : ''}
 ${deliveryAddressDetails?.placeId ? `Place ID: ${deliveryAddressDetails.placeId}` : ''}
 
+
 Requested Items
 ${itemsList}
+
 
 Notes
 ${notes || 'No notes provided'}
       `.trim()
     };
 
+
     await transporter.sendMail(mailOptions);
 
+
     console.log('New quote request emailed successfully.');
+
 
     return res.status(201).json({
       success: true,
@@ -116,11 +159,13 @@ ${notes || 'No notes provided'}
   } catch (error) {
     console.error('Quote submission failed:', error);
 
+
     return res.status(500).json({
       success: false,
       message: 'Server error. Please try again.'
     });
   }
 });
+
 
 export default router;

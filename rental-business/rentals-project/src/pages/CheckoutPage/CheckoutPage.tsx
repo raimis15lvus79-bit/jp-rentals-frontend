@@ -1,3 +1,4 @@
+import { API_URL } from '../../config';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Header } from '../../components/Header/Header';
@@ -22,26 +23,27 @@ type CheckoutErrors = {
 export function CheckoutPage() {
   const navigate = useNavigate();
   const {
-  items,
-  rentalDates,
-  setRentalDates,
-  fulfillmentType,
-  deliveryAddress,
-  deliveryAddressDetails,
-  setDeliveryAddress,
-  setDeliveryAddressDetails,
-  clearQuote,
-} = useQuote();
+    items,
+    rentalDates,
+    fulfillmentType,
+    deliveryAddress,
+    deliveryAddressDetails,
+    customerInfo,
+    setCustomerInfo,
+    setDeliveryAddress,
+    setDeliveryAddressDetails,
+    clearQuote,
+  } = useQuote();
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    eventType: '',
+    fullName: customerInfo.fullName,
+    email: customerInfo.email,
+    phone: customerInfo.phone,
+    eventType: customerInfo.eventType,
     startDate: rentalDates.start || '',
     endDate: rentalDates.end || '',
-    guestCount: '',
-    notes: '',
+    guestCount: customerInfo.guestCount,
+    notes: customerInfo.notes,
   });
 
   const [errors, setErrors] = useState<CheckoutErrors>({});
@@ -56,55 +58,58 @@ export function CheckoutPage() {
   }, [items]);
 
   const validateField = (name: string, value: string, nextFormData = formData) => {
-    switch (name) {
-      case 'fullName':
-        if (!value.trim()) return 'Please enter your full name.';
-        if (value.trim().length < 2) return 'Full name must be at least 2 characters.';
-        return '';
+  switch (name) {
+    case 'fullName':
+      if (!value.trim()) return 'Please enter your full name.';
+      if (value.trim().length < 2) return 'Full name must be at least 2 characters.';
+      if (value.trim().length > 100) return 'Full name must be 100 characters or less.';
+      return '';
 
-      case 'email': {
-        const emailValue = value.trim();
-        if (!emailValue) return 'Please enter your email address.';
-        if (!EMAIL_REGEX.test(emailValue)) return 'Please enter a valid email address.';
-        return '';
-      }
-
-      case 'phone': {
-        if (!value.trim()) return 'Phone number is required.';
-        const digits = value.replace(/\D/g, '');
-        if (digits.length < 10) return 'Enter a valid phone number.';
-        return '';
-      }
-
-      case 'eventType':
-        if (!value) return 'Please select an event type.';
-        return '';
-
-      case 'startDate':
-        if (!value) return 'Please choose a rental start date.';
-        return '';
-
-      case 'endDate':
-        if (!value) return 'Please choose a rental end date.';
-        if (nextFormData.startDate && value < nextFormData.startDate) {
-          return 'End date must be on or after the start date.';
-        }
-        return '';
-
-      case 'guestCount':
-        if (!value.trim()) return '';
-        if (!/^\d+$/.test(value.trim())) return 'Guest count must be a whole number.';
-        if (Number(value.trim()) < 1) return 'Guest count must be at least 1.';
-        return '';
-
-      case 'notes':
-        if (value.length > 1000) return 'Notes must be 1000 characters or less.';
-        return '';
-
-      default:
-        return '';
+    case 'email': {
+      const emailValue = value.trim();
+      if (!emailValue) return 'Please enter your email address.';
+      if (!EMAIL_REGEX.test(emailValue)) return 'Please enter a valid email address.';
+      if (emailValue.length > 254) return 'Email address must be 254 characters or less.';
+      return '';
     }
-  };
+
+    case 'phone': {
+      if (!value.trim()) return 'Phone number is required.';
+      const digits = value.replace(/\D/g, '');
+      if (digits.length < 10) return 'Enter a valid phone number.';
+      if (digits.length > 15) return 'Phone number cannot exceed 15 digits.';
+      return '';
+    }
+
+    case 'eventType':
+      if (!value) return 'Please select an event type.';
+      return '';
+
+    case 'startDate':
+      if (!value) return 'Please choose a rental start date.';
+      return '';
+
+    case 'endDate':
+      if (!value) return 'Please choose a rental end date.';
+      if (nextFormData.startDate && value < nextFormData.startDate) {
+        return 'End date must be on or after the start date.';
+      }
+      return '';
+
+    case 'guestCount':
+      if (!value.trim()) return '';
+      if (!/^\d+$/.test(value.trim())) return 'Guest count must be a whole number.';
+      if (Number(value.trim()) < 1) return 'Guest count must be at least 1.';
+      return '';
+
+    case 'notes':
+      if (value.length > 1000) return 'Notes must be 1000 characters or less.';
+      return '';
+
+    default:
+      return '';
+  }
+};
 
   const handleBlur = (
     event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -134,49 +139,48 @@ export function CheckoutPage() {
   };
 
   const handleChange = (
-  event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-) => {
-  const { name, value } = event.target;
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = event.target;
 
-  const nextFormData = {
-    ...formData,
-    [name]: value,
-  };
+    const nextFormData = {
+      ...formData,
+      [name]: value,
+    };
 
-  setFormData(nextFormData);
+    setFormData(nextFormData);
 
-  if (name === 'startDate' || name === 'endDate') {
-    setRentalDates({
-      ...rentalDates,
-      [name === 'startDate' ? 'start' : 'end']: value,
+    // Sync customer info to context so it persists across navigation
+    setCustomerInfo({
+      ...customerInfo,
+      [name]: value,
     });
-  }
 
-  if (touched[name]) {
-    setErrors((current) => ({
-      ...current,
-      [name]: validateField(name, value, nextFormData) || undefined,
-    }));
-  }
+    if (touched[name]) {
+      setErrors((current) => ({
+        ...current,
+        [name]: validateField(name, value, nextFormData) || undefined,
+      }));
+    }
 
-  if (name === 'startDate' && touched.endDate) {
-    setErrors((current) => ({
-      ...current,
-      endDate: validateField('endDate', nextFormData.endDate, nextFormData) || undefined,
-    }));
-  }
+    if (name === 'startDate' && touched.endDate) {
+      setErrors((current) => ({
+        ...current,
+        endDate: validateField('endDate', nextFormData.endDate, nextFormData) || undefined,
+      }));
+    }
 
-  if (name === 'endDate' && touched.startDate) {
-    setErrors((current) => ({
-      ...current,
-      endDate: validateField('endDate', value, nextFormData) || undefined,
-    }));
-  }
+    if (name === 'endDate' && touched.startDate) {
+      setErrors((current) => ({
+        ...current,
+        endDate: validateField('endDate', value, nextFormData) || undefined,
+      }));
+    }
 
-  if (submitError) {
-    setSubmitError('');
-  }
-};
+    if (submitError) {
+      setSubmitError('');
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -258,7 +262,7 @@ export function CheckoutPage() {
     };
 
     try {
-      const response = await fetch('/api/quotes', {
+      const response = await fetch(`${API_URL}/api/quotes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -271,6 +275,14 @@ export function CheckoutPage() {
       }
 
       clearQuote();
+      setCustomerInfo({
+        fullName: '',
+        email: '',
+        phone: '',
+        eventType: '',
+        guestCount: '',
+        notes: '',
+      });
       navigate('/checkout/success');
     } catch (error) {
       console.error(error);
@@ -351,6 +363,7 @@ export function CheckoutPage() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   required
+                  maxLength={254}
                   className={errors.email ? 'checkout-input-error' : ''}
                   aria-invalid={Boolean(errors.email)}
                   aria-describedby={errors.email ? 'checkout-email-error' : undefined}
@@ -374,6 +387,7 @@ export function CheckoutPage() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   required
+                  maxLength={20}
                   className={errors.phone ? 'checkout-input-error' : ''}
                   aria-invalid={Boolean(errors.phone)}
                   aria-describedby={errors.phone ? 'checkout-phone-error' : undefined}

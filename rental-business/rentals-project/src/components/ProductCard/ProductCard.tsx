@@ -3,6 +3,7 @@ import { useQuote } from '../../context/QuoteContext';
 import { formatMoney } from '../../utils/money';
 import './ProductCard.css';
 
+
 type Product = {
   id: string;
   name: string;
@@ -14,9 +15,11 @@ type Product = {
   inventory: number;
 };
 
+
 type ProductCardProps = {
   product: Product;
 };
+
 
 function formatCategoryLabel(category: string) {
   if (category === 'yard-games') {
@@ -26,10 +29,14 @@ function formatCategoryLabel(category: string) {
   return category.charAt(0).toUpperCase() + category.slice(1);
 }
 
+
 export function ProductCard({ product }: ProductCardProps) {
-  const { addItem } = useQuote();
+  const { addItem, items } = useQuote();
 
   const isUnavailable = product.inventory <= 0;
+
+  // Find current quantity of this product in the quote
+  const quantity = items.find((item) => item.id === product.id)?.quantity ?? 0;
 
   function handleAddToQuote() {
     if (isUnavailable) {
@@ -85,6 +92,7 @@ export function ProductCard({ product }: ProductCardProps) {
               disabled={isUnavailable}
             >
               {isUnavailable ? 'Not Available' : 'Add to Quote'}
+              {quantity > 0 && <span className="quantity-badge">{quantity}</span>}
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import {
   QuoteContext,
+  type CustomerInfo,
   type DeliveryAddressDetails,
   type FulfillmentType,
   type QuoteItem,
@@ -22,6 +23,14 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [deliveryAddressDetails, setDeliveryAddressDetails] =
     useState<DeliveryAddressDetails | null>(null);
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
+    fullName: '',
+    email: '',
+    phone: '',
+    eventType: '',
+    guestCount: '',
+    notes: '',
+  });
 
   function addItem(item: Omit<QuoteItem, 'quantity'>) {
     setItems((current) => {
@@ -55,6 +64,14 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
     setFulfillmentType('pickup');
     setDeliveryAddress('');
     setDeliveryAddressDetails(null);
+    setCustomerInfo({
+      fullName: '',
+      email: '',
+      phone: '',
+      eventType: '',
+      guestCount: '',
+      notes: '',
+    });
   }
 
   const value = useMemo(
@@ -64,6 +81,8 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
       fulfillmentType,
       deliveryAddress,
       deliveryAddressDetails,
+      customerInfo,
+      setCustomerInfo,
       addItem,
       removeItem,
       updateQuantity,
@@ -73,7 +92,14 @@ export function QuoteProvider({ children }: QuoteProviderProps) {
       setDeliveryAddressDetails,
       clearQuote,
     }),
-    [items, rentalDates, fulfillmentType, deliveryAddress, deliveryAddressDetails]
+    [
+      items,
+      rentalDates,
+      fulfillmentType,
+      deliveryAddress,
+      deliveryAddressDetails,
+      customerInfo,
+    ]
   );
 
   return <QuoteContext.Provider value={value}>{children}</QuoteContext.Provider>;

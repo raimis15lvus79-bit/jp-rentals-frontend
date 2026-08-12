@@ -13,6 +13,14 @@ app.use(express.json());
 
 app.use('/api/quotes', quotesRouter);
 
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'JP Rentals API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
 });

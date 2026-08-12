@@ -14,8 +14,8 @@ export function HomePage() {
             <p className="hero-eyebrow">Party rentals in Northeast Wisconsin</p>
 
             <h1>
-  Chairs, tables, games, and concessions for backyard parties,
-  graduation parties, and local events.
+  Chairs, Tables, Games, Concessions for Backyard,
+  Graduation Parties, and Local Events.
 </h1>
 
             <p className="hero-text">

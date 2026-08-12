@@ -18,7 +18,5 @@ export default defineConfig({
       }
     }
   },
-  build: {
-    outDir: '../rentals-backend/dist'
-  }
+  
 });

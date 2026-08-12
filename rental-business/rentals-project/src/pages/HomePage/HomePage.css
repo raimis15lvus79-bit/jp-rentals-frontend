@@ -2,6 +2,7 @@
   padding-bottom: 88px;
 }
 
+
 .hero-section,
 .home-section {
   max-width: 1180px;
@@ -10,39 +11,67 @@
   padding-right: 20px;
 }
 
+
 .hero-section {
+  position: relative;
   padding-top: 76px;
   padding-bottom: 52px;
+  
+  /* Background image */
+  background-image: url('/images/hero-background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #1a1a1a;
 }
 
+/* Dark overlay for better text readability */
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Adjust opacity: 0.3 = light, 0.7 = dark */
+  z-index: 1;
+}
+
+
 .hero-content {
+  position: relative;
+  z-index: 2;
   max-width: 860px;
 }
 
+
 .hero-eyebrow {
   margin: 0 0 12px;
-  color: #0f766e;
+  color: #ffffff;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 13px;
 }
 
+
 .hero-content h1 {
   margin: 0 0 18px;
   font-size: clamp(2.4rem, 5vw, 4.25rem);
   line-height: 1.02;
-  color: #111827;
+  color: #ffffff;
   max-width: 980px;
 }
+
 
 .hero-text {
   max-width: 680px;
   margin: 0 0 28px;
   font-size: 1.08rem;
   line-height: 1.7;
-  color: #4b5563;
+  color: #e5e7eb;
 }
+
 
 .hero-actions {
   display: flex;
@@ -51,11 +80,13 @@
   margin-bottom: 20px;
 }
 
+
 .hero-trust {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
+
 
 .hero-trust span {
   display: inline-flex;
@@ -63,27 +94,31 @@
   min-height: 38px;
   padding: 0 14px;
   border-radius: 999px;
-  background: #f3f7f7;
-  border: 1px solid rgba(15, 118, 110, 0.12);
-  color: #0f766e;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
   font-weight: 700;
   font-size: 0.94rem;
 }
+
 
 .home-section {
   padding-top: 26px;
   padding-bottom: 26px;
 }
 
+
 .section-heading {
   margin-bottom: 20px;
 }
+
 
 .section-heading h2 {
   margin: 0 0 8px;
   font-size: clamp(1.8rem, 3vw, 2.2rem);
   color: #111827;
 }
+
 
 .section-heading p {
   margin: 0;
@@ -92,6 +127,7 @@
   max-width: 700px;
 }
 
+
 .feature-grid,
 .steps-grid,
 .testimonials-grid {
@@ -99,6 +135,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
+
 
 .feature-card,
 .step-card,
@@ -112,9 +149,11 @@
   box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
 }
 
+
 .feature-card--highlight {
   background: linear-gradient(180deg, #ffffff 0%, #f8fbfb 100%);
 }
+
 
 .feature-card h3,
 .step-card h3 {
@@ -122,12 +161,14 @@
   color: #111827;
 }
 
+
 .feature-card p,
 .step-card p {
   margin: 0;
   line-height: 1.65;
   color: #555;
 }
+
 
 .feature-link {
   display: inline-flex;
@@ -139,10 +180,12 @@
   text-underline-offset: 3px;
 }
 
+
 .feature-link:hover,
 .feature-link:focus-visible {
   color: #0b5e57;
 }
+
 
 .step-card span {
   display: inline-flex;
@@ -157,9 +200,11 @@
   font-weight: 700;
 }
 
+
 .service-area-section {
   margin-top: 6px;
 }
+
 
 .service-area-text {
   margin: 0 0 18px;
@@ -168,11 +213,13 @@
   line-height: 1.7;
 }
 
+
 .service-area-list {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
+
 
 .service-area-list span {
   display: inline-flex;
@@ -186,15 +233,18 @@
   font-size: 0.95rem;
 }
 
+
 .testimonials-section {
   margin-top: 10px;
 }
+
 
 .testimonial-text {
   margin: 0 0 16px;
   color: #374151;
   line-height: 1.7;
 }
+
 
 .testimonial-name {
   margin: 0;
@@ -203,15 +253,18 @@
   font-weight: 700;
 }
 
+
 .cta-section {
   margin-top: 28px;
   text-align: left;
 }
 
+
 .cta-section h2 {
   margin: 0 0 10px;
   color: #111827;
 }
+
 
 .cta-section p {
   margin: 0 0 18px;
@@ -219,6 +272,7 @@
   color: #555;
   line-height: 1.6;
 }
+
 
 @media (max-width: 900px) {
   .feature-grid,
@@ -228,27 +282,33 @@
   }
 }
 
+
 @media (max-width: 640px) {
   .hero-section {
     padding-top: 56px;
     padding-bottom: 36px;
   }
 
+
   .hero-text {
     font-size: 1rem;
   }
+
 
   .hero-actions {
     gap: 10px;
   }
 
+
   .hero-trust {
     gap: 8px;
   }
 
+
   .hero-trust span {
     font-size: 0.9rem;
   }
+
 
   .feature-card,
   .step-card,

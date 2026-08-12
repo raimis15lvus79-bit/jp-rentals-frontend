@@ -12,10 +12,10 @@ describe('HomePage component', () => {
     );
 
     expect(
-      screen.getByRole('heading', {
-        name: /chairs, tables, games, and concessions for backyard parties/i,
-      })
-    ).toBeInTheDocument();
+  screen.getByRole('heading', {
+    name: /chairs, tables, games, concessions for backyard/i
+  })
+).toBeInTheDocument();
 
     expect(
       screen.getByText(

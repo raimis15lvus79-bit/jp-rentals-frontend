@@ -23,12 +23,23 @@ export type DeliveryAddressDetails = {
   lng: number | null;
 };
 
+export type CustomerInfo = {
+  fullName: string;
+  email: string;
+  phone: string;
+  eventType: string;
+  guestCount: string;
+  notes: string;
+};
+
 type QuoteContextValue = {
   items: QuoteItem[];
   rentalDates: RentalDates;
   fulfillmentType: FulfillmentType;
   deliveryAddress: string;
   deliveryAddressDetails: DeliveryAddressDetails | null;
+  customerInfo: CustomerInfo;
+  setCustomerInfo: (info: CustomerInfo) => void;
   addItem: (item: Omit<QuoteItem, 'quantity'>) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;

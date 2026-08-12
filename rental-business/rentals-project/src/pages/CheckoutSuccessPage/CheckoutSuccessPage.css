@@ -111,3 +111,57 @@
 .checkout-success-note {
   margin-top: 1.5rem;
 }
+
+/* ARIA announcement container */
+.checkout-success-announcement {
+  margin-bottom: 16px;
+}
+
+/* Quote summary section */
+.checkout-success-summary {
+  margin: 0;
+  padding: 0;
+}
+
+.checkout-success-summary h2 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+/* Definition list for summary details */
+.checkout-success-details dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0;
+}
+
+/* Summary blocks inside dl */
+.checkout-success-details .checkout-success-block {
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 18px;
+  padding: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.checkout-success-details dt {
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.92rem;
+}
+
+.checkout-success-details dd {
+  margin: 0;
+  color: #555;
+  line-height: 1.6;
+}
+
+/* Mobile adjustments for summary */
+@media (max-width: 720px) {
+  .checkout-success-details dl {
+    grid-template-columns: 1fr;
+  }
+}
